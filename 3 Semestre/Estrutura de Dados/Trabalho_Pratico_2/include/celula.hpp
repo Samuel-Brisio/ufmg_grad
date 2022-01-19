@@ -14,7 +14,9 @@ struct Celula
     }
 
     bool operator > (const Celula &right) const {
-        return chave > right.chave || (!(chave > right.chave) && url.compare(right.url) < 0); 
+        if (chave > right.chave) return true;
+        if (chave == right.chave && url.compare(right.url) < 0) return false;
+        return false; 
     }
 };
 

@@ -1,0 +1,6 @@
+**/*.txt
+**/output/
+.vscode/
+**/obj/
+**/bin/
+teste.cpp

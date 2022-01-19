@@ -7,7 +7,8 @@
 #include "aux_function.hpp"
 #include "heap.hpp"
 
-#define PATH "/tmp/"
+#define PATH "/tmp/rodadas/"
+#define OUTPUT_PATH "output/"
 
 
 // Le a entrada e salva os dados em um array
@@ -80,8 +81,10 @@ int gera_rodadas(int number, std::istream &is = std::cin) {
 
 }
 
-void intercala(int &number, Heap<urlViews_fita> &heap) {
-    
+void intercala(int &number, std::string nome_arquivo_de_saida) {
+
+    //heap datastruct 
+    Heap<urlViews_fita> heap(number);
     std::ifstream fitas[number];
     urlViews_fita tmp;
     std::string input;
@@ -100,7 +103,7 @@ void intercala(int &number, Heap<urlViews_fita> &heap) {
         heap.insere(tmp);
     }
 
-    std::ofstream outFile("output/saida_esperada.txt");
+    std::ofstream outFile(OUTPUT_PATH + nome_arquivo_de_saida);
     erroAssert(outFile.is_open(), "Erro: nao foi possivel abrir o arquivo de saida");
 
     while(!heap.vazio()) {
@@ -123,18 +126,16 @@ void intercala(int &number, Heap<urlViews_fita> &heap) {
 void parse_args(char **argv , std::string &name, std::string &out_name, int &memoria, int &n_fitas) {
     name = argv[1];
     out_name = argv[2];
-    memoria = std::atoi(argv[2]);
-    n_fitas = std::atoi(argv[3]);
+    memoria = std::atoi(argv[3]);
+    n_fitas = std::atoi(argv[4]);
 }
 
 int main(int argc, char **argv) {
 
-    if(argc < 4) {
+    if(argc < 5) {
         std::cout << "numero de argumentos invalido" << std::endl;
         return -1;
     }
-
-    std::cout << argc << " " << argv[1] << std::endl;
     
     std::string nome; // nome do arquivo de entrada
     std::string nome_saida; // nome do arquivo de saida
@@ -154,10 +155,7 @@ int main(int argc, char **argv) {
 
     n_fitas = gera_rodadas(memoria_tamanho, file);
 
-    //heap datastruct 
-    Heap<urlViews_fita> heap(n_fitas);
-
-    intercala(n_fitas, heap);
+    intercala(n_fitas, nome_saida);
 
     file.close();
 

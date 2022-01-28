@@ -4,8 +4,10 @@
 #include <ctype.h>
 #include <cstring>
 #include <cmath>
+#include <string>
 
 #include "msgassert.h"
+#include "memlog.h"
 #include "quicksort.hpp"
 #include "celula.hpp"
 #include "heap.hpp"
@@ -99,6 +101,8 @@ int gera_rodadas(int number, std::istream &is = std::cin) {
         //salva os dados da entrada em um arr
         entidades = le_entidade(arr, number, is);
 
+        if(entidades == 0) break;
+
         // Ordena o array
         quick::quickSort(arr, 0, entidades - 1);
 
@@ -112,57 +116,9 @@ int gera_rodadas(int number, std::istream &is = std::cin) {
     }
 
     return rodada;
-
 }
 
-void intercala(int &number, std::string nome_arquivo_de_saida) {
-
-    //heap datastruct 
-    Heap<urlViews_fita> heap(number);
-    // array de fitas
-    std::ifstream fitas[number];
-    urlViews_fita tmp;
-    std::string input;
-
-    for(int i = 0; i < number; i++) {
-        std::string nome = ("rodada-") + std::to_string(i);
-        nome.append(".txt");
-
-        fitas[i].open(PATH + nome);
-    }
-
-    for(int i = 0; i < number; i++) {
-        getline(fitas[i], input);
-        get_input(input, tmp.url, tmp.chave);
-        tmp.fita = i;
-        heap.insere(tmp);
-    }
-
-    std::ofstream outFile(OUTPUT_PATH + nome_arquivo_de_saida);
-    erroAssert(outFile.is_open(), "Erro: nao foi possivel abrir o arquivo de saida");
-
-    while(!heap.vazio()) {
-        urlViews_fita tmp;
-        tmp = heap.remove();
-
-        outFile << tmp.url << " " << tmp.chave << std::endl;
-
-        if(getline(fitas[tmp.fita], input)) {
-            get_input(input, tmp.url, tmp.chave);
-            heap.insere(tmp);
-        }
-    }
-
-    //fechar os arquivos
-    for(int i = 0; i < number; i++) {
-        fitas[i].close();
-    }
-    outFile.close();
-
-}
-
-
-// Função utilizada no intercala_rodadas_maior_fitas
+// intercala n arquivos
 void intercala(int &number, int rodada, std::string nome_arquivo_de_entrada, std::string nome_arquivo_de_saida) {
 
     //heap datastruct 
@@ -210,38 +166,54 @@ void intercala(int &number, int rodada, std::string nome_arquivo_de_entrada, std
 
 }
 
-// 
 // intercala quando o numero de rodadas for maior que o numero de fitas
 void intercala_rodadas_maior_fitas(int nFitas, int nRodadas, std::string nomeSaida) {
-    // quantidade de vezes que o intercala será executado
+    
+    // quantidade de vezes que o intercala será executado no loop do for
     int repete = std::ceil(nRodadas / double(nFitas));
+
+    // Guarda o indice do proximo arquivo a ser intercalo    
     int prox_rodada = 0;
+
+    // quantas rodadas ainda restam, utlizado no for loop
     int rodada_restante = nRodadas;
+
+    // Quantas vezes o while loop foi executado  
     int numero_de_intercalacoes = 0;
+
+    // estrutura de como será os nomes dos arquivos intermediarios
     std::string nome_intermediario_outfile = PATH + std::string("intermediario");
+    
+    //variaveis de controle
+    bool e_primeira_intercalacao;
+
+    //apagar count
+    int count = 0;
 
     do {
         numero_de_intercalacoes++;
+        e_primeira_intercalacao = numero_de_intercalacoes == 1;
 
         for(int i = 0; i < repete; i++) {
+
             // gera o nome da fita intermediaria
             std::string nome = nome_intermediario_outfile;
             nome.append(std::to_string(numero_de_intercalacoes) + std::string("-") + std::to_string(i) + std::string(".txt"));
 
-            int restante = rodada_restante - prox_rodada;
-            if(restante < nFitas) {
-                if(numero_de_intercalacoes == 1) {
-                    intercala(restante, prox_rodada, PATH + std::string("rodada-"), nome);
-                }
-                else intercala(restante, prox_rodada, nome_intermediario_outfile + std::to_string(numero_de_intercalacoes - 1) + std::string("-"), nome);    
+            // Quantos arquivos serão lidos no intercala
+            int n_aquivos;
+            if(rodada_restante > nFitas) n_aquivos = nFitas;
+            else n_aquivos = rodada_restante;
+
+            if(e_primeira_intercalacao) {
+                intercala(n_aquivos, prox_rodada, PATH + std::string("rodada-"), nome);
             }
-            else {
-                if(numero_de_intercalacoes == 1) {
-                    intercala(nFitas, prox_rodada, PATH + std::string("rodada-"), nome);
-                }
-                else intercala(nFitas, prox_rodada, nome_intermediario_outfile + std::to_string(numero_de_intercalacoes - 1) + std::string("-"), nome);
-            }
-            prox_rodada += nFitas;
+            else intercala(n_aquivos, prox_rodada, nome_intermediario_outfile + std::to_string(numero_de_intercalacoes - 1) + std::string("-"), nome);
+
+            prox_rodada += nFitas;  
+            rodada_restante -= nFitas;          
+
+            count++;
         }
 
         rodada_restante = repete;
@@ -252,6 +224,9 @@ void intercala_rodadas_maior_fitas(int nFitas, int nRodadas, std::string nomeSai
 
     intercala(rodada_restante, prox_rodada, nome_intermediario_outfile + std::to_string(numero_de_intercalacoes) + std::string("-"), OUTPUT_PATH + nomeSaida);
 
+    count++;
+
+    std::cout << count << " " << numero_de_intercalacoes << std::endl;
 }
 
 
@@ -267,7 +242,7 @@ void parse_args(char **argv , std::string &name, std::string &out_name, int &mem
 
     erroAssert(isNumber(argv[4]), errorMensage('n'));
     n_fitas = std::atoi(argv[4]);
-    erroAssert(n_fitas > 0, "Numero de fitas invalido, valor informado é negativo ou nulo");
+    erroAssert(n_fitas > 1, "Numero de fitas invalido, valor informado e menor que 1");
 }
 
 int main(int argc, char **argv) {
@@ -276,13 +251,20 @@ int main(int argc, char **argv) {
         std::cout << "numero de argumentos invalido" << std::endl;
         return -1;
     }
-    
+
     std::string nome_entrada; // nome do arquivo de entrada
     std::string nome_saida; // nome do arquivo de saida
+    std::string nome_log = "/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_2/log.txt";
     int memoria_tamanho; // tamanho da memória, ou a quantidade de entidades por arquivo
     int n_fitas; // Quandidade de fitas que devem ser geradas
-    
+    int regem;
+
     parse_args(argv, nome_entrada, nome_saida,memoria_tamanho, n_fitas);
+    
+    iniciaMemLog(nome_log);
+
+    if (regem) ativaMemLog();
+    else desativaMemLog();
 
     std::ifstream file;
 
@@ -300,9 +282,9 @@ int main(int argc, char **argv) {
         intercala_rodadas_maior_fitas(n_fitas, n_rodadas, nome_saida);
     }
 
-    else intercala(n_rodadas, nome_saida);
-
+    else intercala(n_rodadas, 0, PATH + std::string("rodada-"), OUTPUT_PATH + nome_saida);
+    
     file.close();
 
-    return 0;
+    return finalizaMemLog();
 }

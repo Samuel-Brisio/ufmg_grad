@@ -25,9 +25,10 @@ struct urlViews_fita {
     int chave;
     int fita;
 
-    void operator = (const Celula &right) {
+    void operator = (const urlViews_fita &right) {
         url = right.url;
         chave = right.chave;
+        fita = right.fita;
     }
 
     bool operator > (const urlViews_fita &right) {

@@ -4,13 +4,14 @@
 #include <iostream>
 #include <array>
 #include "heapsort_k.hpp"
+#include "memlog.h"
 #include "msgassert.h"
 
 
 template <typename T>
 class Heap {
     public:
-        Heap(int n);
+        Heap(int n, int id);
         ~Heap();
 
         void insere(T &elem); // insere um elemento no vetor e o ordena
@@ -21,6 +22,7 @@ class Heap {
         void imprimi(std::ostream &os = std::cout);
 
     private:
+        int id;
         int max_tam;
         int tamanho;
         int inicio;
@@ -29,7 +31,8 @@ class Heap {
 };
 
 template <typename T>
-Heap<T>::Heap(int n) {
+Heap<T>::Heap(int n, int id) {
+    this->id = id;
     max_tam = n;
     tamanho = 0;
     inicio = 0;
@@ -51,6 +54,7 @@ void Heap<T>::insere(T &elem) {
     fim++;
     tamanho++;
     arr[fim] = elem;
+    escreveMemLog( (long int) &arr[fim], sizeof(T), id);
     heapSort(arr, fim + 1);
 }
 
@@ -60,6 +64,7 @@ T Heap<T>::remove() {
     erroAssert(fim >= -1 && tamanho >= 0, "array vazio");
 
     T aux = arr[fim];
+    leMemLog((long int) &arr[fim], sizeof(T), id);
     fim--;
     tamanho--;
     return aux;
@@ -68,7 +73,10 @@ T Heap<T>::remove() {
 template <typename T>
 void Heap<T>::imprimi(std::ostream &os) {
     
-    for(int i = inicio; i <= fim; i++) os << arr[i].chave << std::endl;
+    for(int i = inicio; i <= fim; i++) {
+        os << arr[i].chave << std::endl;
+        leMemLog((long int) &arr[i].chave, sizeof(int), id);
+    }
 }
 
 template <typename T>

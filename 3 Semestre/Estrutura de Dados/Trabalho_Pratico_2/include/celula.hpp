@@ -3,6 +3,24 @@
 
 #include <iostream>
 
+// estrutura de dados utilizado na pilha
+template <typename T>
+struct celula 
+{
+    T elem;
+    celula* next;
+    
+    celula() {
+        next = nullptr;
+    }
+    
+    celula(T elem) {
+        this->elem = elem;
+        next = nullptr;
+        
+    }
+};
+
 struct Celula
 {
     std::string url;

@@ -15,6 +15,8 @@
 #define PATH "/tmp/"
 #define OUTPUT_PATH "output/"
 
+int heap_id = 0;
+
 // Imprimi o array
 template <typename T>
 void imprimi_arr(T arr[], int n, std::ostream &os = std::cout) {
@@ -122,7 +124,8 @@ int gera_rodadas(int number, std::istream &is = std::cin) {
 void intercala(int &number, int rodada, std::string nome_arquivo_de_entrada, std::string nome_arquivo_de_saida) {
 
     //heap datastruct 
-    Heap<urlViews_fita> heap(number);
+    Heap<urlViews_fita> heap(number, heap_id);
+    heap_id++;
     // array de fitas
     std::ifstream fitas[number];
     urlViews_fita tmp;
@@ -254,14 +257,14 @@ int main(int argc, char **argv) {
 
     std::string nome_entrada; // nome do arquivo de entrada
     std::string nome_saida; // nome do arquivo de saida
-    std::string nome_log = "/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_2/log.txt";
+    char *str = "/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_2/log.txt";
     int memoria_tamanho; // tamanho da memória, ou a quantidade de entidades por arquivo
     int n_fitas; // Quandidade de fitas que devem ser geradas
-    int regem;
+    int regem = 1; 
 
     parse_args(argv, nome_entrada, nome_saida,memoria_tamanho, n_fitas);
     
-    iniciaMemLog(nome_log);
+    iniciaMemLog(str);
 
     if (regem) ativaMemLog();
     else desativaMemLog();

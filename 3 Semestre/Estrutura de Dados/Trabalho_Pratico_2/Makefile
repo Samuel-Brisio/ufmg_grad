@@ -7,31 +7,35 @@ OBJ_FOLDER = obj
 SRC_FOLDER = src
 CXXFLAGS = -Wall -c -I$(INC_FOLDER)
 
-OBJS = $(OBJ_FOLDER)/main.o 
+OBJS = $(OBJ_FOLDER)/debug.o $(OBJ_FOLDER)/memlog.o
 HDRS = $(wildcard $(INC_FOLDER)/*.h) $(wildcard $(INC_FOLDER)/*.hpp)
-SRCS = $(wildcard $(SRC_FOLDER)/*.cpp)
+SRCS = $(wildcard $(SRC_FOLDER)/*.cpp) $(wildcard $(SRC_FOLDER)/*.c)
 
 EXE = $(BIN_FOLDER)/main
 DEBUG = $(BIN_FOLDER)/debug
 
-all: $(EXE)
 
-$(BIN_FOLDER)/main: $(HDRS) $(OBJS)
-	$(CXX) -o $(BIN_FOLDER)/main $(OBJS) $(LIBS)
+#all: $(EXE)
 
-$(OBJ_FOLDER)/main.o: $(HDRS) $(SRC_FOLDER)/main.cpp
-	$(CXX) $(CXXFLAGS) -o $(OBJ_FOLDER)/main.o $(SRC_FOLDER)/main.cpp
+#$(BIN_FOLDER)/main: $(HDRS) $(OBJS)
+#	$(CXX) -o $(BIN_FOLDER)/main $(OBJS) $(LIBS)
+
+#$(OBJ_FOLDER)/main.o: $(HDRS) $(SRC_FOLDER)/main.cpp
+#	$(CXX) $(CXXFLAGS) -o $(OBJ_FOLDER)/main.o $(SRC_FOLDER)/main.cpp
+
+#$(OBJ_FOLDER)/memlog.o: $(HDRS) $(SRC_FOLDER)/memlog.c
+#	$(CXX) $(CXXFLAGS) -o $(OBJ_FOLDER)/memlog.o $(SRC_FOLDER)/memlog.c
 
 debug: $(DEBUG)
 
-$(BIN_FOLDER)/debug: $(HDRS) $(OBJ_FOLDER)/debug.o
-	$(CXX) -g -o $(BIN_FOLDER)/debug $(OBJ_FOLDER)/debug.o $(LIBS)
+$(BIN_FOLDER)/debug: $(HDRS) $(OBJS)
+	$(CXX) -g -o $(BIN_FOLDER)/debug $(OBJS) $(LIBS)
 
 $(OBJ_FOLDER)/debug.o: $(HDRS) $(SRCS)
 	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/debug.o $(SRC_FOLDER)/main.cpp
 
-dexe:
-	./$(DEBUG) < input.txt
-	
+$(OBJ_FOLDER)/memlog.o: $(HDRS) $(SRCS)
+	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/memlog.o $(SRC_FOLDER)/memlog.c
+
 clean:
 	rm $(BIN_FOLDER)/* $(OBJ_FOLDER)/* 

@@ -33,9 +33,10 @@ struct Celula
 
     bool operator > (const Celula &right) const {
         if (chave > right.chave) return true;
-        if (chave == right.chave && url.compare(right.url) < 0) return false;
+        if (chave == right.chave && url.compare(right.url) < 0) return true;
         return false; 
     }
+    
 };
 
 struct urlViews_fita {

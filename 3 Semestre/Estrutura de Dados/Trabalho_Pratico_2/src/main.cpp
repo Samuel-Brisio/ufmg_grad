@@ -5,15 +5,18 @@
 #include <cstring>
 #include <cmath>
 #include <string>
+#include <chrono>
+#include <unistd.h>
 
 #include "msgassert.h"
 #include "memlog.h"
-#include "quicksort.hpp"
 #include "celula.hpp"
 #include "heap.hpp"
+#include "quicksort.hpp"
 
 #define PATH "/tmp/"
 #define OUTPUT_PATH "output/"
+#define micro_s std::chrono::microseconds
 
 int heap_id = 0;
 
@@ -22,6 +25,7 @@ template <typename T>
 void imprimi_arr(T arr[], int n, std::ostream &os = std::cout) {
     for(int i = 0; i < n; i++ ) {
         os << arr[i].url << " " << arr[i].chave << std::endl;
+        escreveMemLog((long int) &arr[i], sizeof(T), 0);
     }
 }
 
@@ -58,6 +62,7 @@ int le_entidade(Celula arr[] , int const &number, std::istream &is) {
     
     //Le "number" entradas ou menos, caso não tenha mais entrada
     while(is >> arr[i].url >> arr[i].chave) {
+        escreveMemLog((long int)&arr[i], sizeof(Celula), 0);
         i++;  
         if(i >= number) break;
     }
@@ -71,10 +76,7 @@ void escreve_arquivo(Celula arr[], int &numb, std::string name) {
     
     std::ofstream outfile(PATH + name);
 
-    if(!outfile.is_open()) {
-        std::cout << "Erro: não foi possivel abrir o aquivo " << PATH + name << std::endl;
-        exit(-5); 
-    }
+    erroAssert(outfile.is_open(), "Erro: não foi possivel abrir o aquivo ");
 
     imprimi_arr(arr, numb, outfile);
 
@@ -106,7 +108,7 @@ int gera_rodadas(int number, std::istream &is = std::cin) {
         if(entidades == 0) break;
 
         // Ordena o array
-        quick::quickSort(arr, 0, entidades - 1);
+        qs::quicksort(arr, 0, entidades - 1);
 
         std::string nome = ("rodada-") + std::to_string(rodada);
         nome.append(".txt");
@@ -172,6 +174,9 @@ void intercala(int &number, int rodada, std::string nome_arquivo_de_entrada, std
 // intercala quando o numero de rodadas for maior que o numero de fitas
 void intercala_rodadas_maior_fitas(int nFitas, int nRodadas, std::string nomeSaida) {
     
+    erroAssert(nFitas >= 2, "Erro: o numero de fitas deve ser igual ou maior a dois");
+    erroAssert(nRodadas > 0, "Erro: o numero de rodadas deve ser maior que um");
+
     // quantidade de vezes que o intercala será executado no loop do for
     int repete = std::ceil(nRodadas / double(nFitas));
 
@@ -189,9 +194,6 @@ void intercala_rodadas_maior_fitas(int nFitas, int nRodadas, std::string nomeSai
     
     //variaveis de controle
     bool e_primeira_intercalacao;
-
-    //apagar count
-    int count = 0;
 
     do {
         numero_de_intercalacoes++;
@@ -215,8 +217,6 @@ void intercala_rodadas_maior_fitas(int nFitas, int nRodadas, std::string nomeSai
 
             prox_rodada += nFitas;  
             rodada_restante -= nFitas;          
-
-            count++;
         }
 
         rodada_restante = repete;
@@ -226,10 +226,6 @@ void intercala_rodadas_maior_fitas(int nFitas, int nRodadas, std::string nomeSai
     } while(rodada_restante > nFitas);
 
     intercala(rodada_restante, prox_rodada, nome_intermediario_outfile + std::to_string(numero_de_intercalacoes) + std::string("-"), OUTPUT_PATH + nomeSaida);
-
-    count++;
-
-    std::cout << count << " " << numero_de_intercalacoes << std::endl;
 }
 
 
@@ -249,6 +245,8 @@ void parse_args(char **argv , std::string &name, std::string &out_name, int &mem
 }
 
 int main(int argc, char **argv) {
+
+    auto start = std::chrono::steady_clock::now();
 
     if(argc < 5) {
         std::cout << "numero de argumentos invalido" << std::endl;
@@ -278,16 +276,27 @@ int main(int argc, char **argv) {
         return -2;
     }
 
+    defineFaseMemLog(0);
+
     int n_rodadas = gera_rodadas(memoria_tamanho, file);
+
+    defineFaseMemLog(1);
 
     // se o numero de rodadas for maior que o numero de fitas
     if(n_rodadas > n_fitas) {
         intercala_rodadas_maior_fitas(n_fitas, n_rodadas, nome_saida);
     }
+    else if (n_rodadas == 1) {
+        // copia rodada para o arquivo de saida
+    }
 
     else intercala(n_rodadas, 0, PATH + std::string("rodada-"), OUTPUT_PATH + nome_saida);
     
     file.close();
+
+    auto end = std::chrono::steady_clock::now();
+
+    std::cout << std::chrono::duration_cast<micro_s>(end - start).count() << std::endl;
 
     return finalizaMemLog();
 }

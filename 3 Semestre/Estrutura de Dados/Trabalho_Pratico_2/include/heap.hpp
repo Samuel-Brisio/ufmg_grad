@@ -4,6 +4,7 @@
 #include <iostream>
 #include <array>
 #include "heapsort_k.hpp"
+#include "quicksort.hpp"
 #include "memlog.h"
 #include "msgassert.h"
 
@@ -56,6 +57,7 @@ void Heap<T>::insere(T &elem) {
     arr[fim] = elem;
     escreveMemLog( (long int) &arr[fim], sizeof(T), id);
     heapSort(arr, fim + 1);
+    //qs::quicksort(arr, inicio, fim);
 }
 
 template <typename T>

@@ -65,6 +65,11 @@ int Lista<T, U>::get_tamanho()
 }
 
 template <typename T, typename U>
+T* Lista<T, U>::get_primeiro_elemento() {
+    return inicio->prox;
+}
+
+template <typename T, typename U>
 T* Lista<T, U>::get_ultimo_elemento()
 // Descricao: Retorna o porteiro do ultimo elemento da lista
 // Entrada: Nenhuma

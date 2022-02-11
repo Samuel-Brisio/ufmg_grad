@@ -11,13 +11,16 @@
 //Self implemented data struct
 #include "new_list.hpp"
 
-#define PROCESSFILEFOLDER "Processo/"
+#define PROCESS_FILE_FOLDER "Processo/"
 #define ALPHABET_LETTER 26
 
 //function prototype
 void parse_args(int &number, char **pametros);
 int open_corpus(std::string folder);
 void read_stopwords();
+void to_lowercase(std::string &word);
+bool is_stopword(std::string &word);
+void remove_special_characters(std::string &word);
 void inverse_index_gen();
 void find_vocabulary();
 void use_instruction();
@@ -94,9 +97,37 @@ void use_instruction() {
 int open_corpus(std::string path) {
     int i = 0;
 
-    for (const auto & entry : std::filesystem::directory_iterator(path)) {
-    std::cout << entry.path() << std::endl;
-    i++;
+    for (const auto &doc : std::filesystem::directory_iterator(path)) {
+        std::ifstream input_file;
+        input_file.open(doc.path());
+        erroAssert(input_file.is_open(), "Erro: nao foi possivel abrir o arquivo");
+        
+        std::string file_name = PROCESS_FILE_FOLDER;
+        file_name.append(std::to_string(i));
+
+        std::ofstream only_vocabulary_file;
+        only_vocabulary_file.open(file_name);
+        erroAssert(only_vocabulary_file.is_open(), "Erro: nao foi possivel abrir o arquivo");
+
+        std::string word;
+
+        while(input_file >> word) {
+            to_lowercase(word);
+
+            if(is_stopword(word)) continue;
+            
+            remove_special_characters(word);
+
+            // if the variable word is empty
+            if(word.size() == 0) continue;
+
+            only_vocabulary_file << word << " ";
+            vocabulary.insert(word);
+        }
+        
+        input_file.close();
+        only_vocabulary_file.close();
+        i++;
     }
 
     return i;
@@ -111,8 +142,46 @@ void read_stopwords() {
 
     Stopword word;
     while(stopwords_file >> word.chave) stopwords.inseri_no_fim(word);
+}
 
-    stopwords.imprime_tudo(std::cout);
+void to_lowercase(std::string &word) {
+    for(auto &c: word) {
+        c = std::tolower(c);
+    }
+}
+
+bool is_stopword(std::string &word) {
+    Stopword_pointer *aux = stopwords.get_primeiro_elemento();
+
+    while(aux != nullptr) {
+        if(word.compare(aux->item.chave) == 0) return true;
+        aux = aux->prox;
+    }
+    return false;
+}
+
+void remove_special_characters(std::string &word) {
+    int i = 0;
+    int size = 0;
+
+    int index_that_need_to_be_kept[100];
+    
+    for(auto c: word) {
+        if((c >= 'a' && c <= 'z')) {
+            index_that_need_to_be_kept[size] = i;
+            size++;
+        }
+        i++;
+    }
+
+    std::string new_word = "";
+
+    for(int j = 0; j < size; j++) {
+        int index = index_that_need_to_be_kept[j];
+        new_word.push_back(word[index]);
+    }
+
+    word.assign(new_word);
 }
 
 /*

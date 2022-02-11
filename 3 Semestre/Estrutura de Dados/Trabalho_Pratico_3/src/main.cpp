@@ -104,7 +104,15 @@ int open_corpus(std::string path) {
 }
 
 void read_stopwords() {
-    return;
+    std::ifstream stopwords_file;
+    stopwords_file.open(stopwords_file_name);
+
+    erroAssert(stopwords_file.is_open(), "Erro: nao foi possivel abrir o arquivo de stopwords");
+
+    Stopword word;
+    while(stopwords_file >> word.chave) stopwords.inseri_no_fim(word);
+
+    stopwords.imprime_tudo(std::cout);
 }
 
 /*

@@ -1,5 +1,11 @@
 #include <iostream>
 #include <fstream>
+#include <getopt.h>
+#include <string>
+
+//External Library
+#include "msgassert.h"
+#include "memlog.h"
 
 #define PROCESSFILEFOLDER "Processo/"
 #define ALPHABET_LETTER 26
@@ -11,8 +17,11 @@ void inverse_index_gen();
 void find_vocabulary();
 
 //global variables
+std::string input_name; // input file name
+std::string output_name; // output file name 
 std::string path_folder; // path for the folder that contais the corpus
 int number_of_files; // number of files in the corpus
+std::string stopwords_file_name;
 //todo   // list of files from the corpus
 //todo   // list of files that contain only vocabulaty words
 
@@ -22,6 +31,7 @@ int main(int argc, char **argv) {
     // separa os argumentos passados para o programa
     parse_args(argc, argv);
 
+    /*
     // abre os documentos
     open_corpus();
 
@@ -33,15 +43,41 @@ int main(int argc, char **argv) {
 
     //gera o indice inverso
     inverse_index_gen();
-
+    */
 
 
 }
 
-void parse_args(int &number, char **pametros) {
-    
+void parse_args(int &number, char **parameters) {
+    extern char * optarg; //extern variable for getopt
+
+    int c;
+
+    while((c = getopt(number, parameters, "i:o:c:s:h"))) {
+        switch (c)
+        {
+        case 'i':
+            input_name.assign(optarg);
+            break;
+        case 'o':
+            output_name.assign(optarg);
+            break;
+        case 'c':
+            path_folder.assign(optarg);
+            break;
+        case 's':
+            stopwords_file_name.assign(optarg);
+            break;
+        case 'h':
+        case '?':
+        default:
+            break;
+        }
+    }
 
 }
+
+/*
 
 void open_corpus(std::string folder) {
 
@@ -91,10 +127,10 @@ void inverse_index_gen() {
         int i = 0;
         //le as palavras do documento até o final do arquivo
         while(doc >> word) {
-            count_of_words.increment(word /*key*/);
+            count_of_words.increment(word); //word -> key
             //or
-            int value = count_of_words.get_value(word /*key*/);
-            count_of_words.set_value(word /*key*/, value + 1);
+            int value = count_of_words.get_value(word); // word -> key
+            count_of_words.set_value(word, value + 1);
         }
 
         //insert the count_of_words, inside of invert_index
@@ -114,3 +150,5 @@ void inverse_index_gen() {
         i++;
     }
 }
+
+*/

@@ -5,7 +5,7 @@
 #define ALPHABET_LETTER 26
 
 //function prototype
-parse_args(int &number, char **pametros);
+void parse_args(int &number, char **pametros);
 void open_corpus(std::string folder);
 void inverse_index_gen();
 void find_vocabulary();
@@ -38,8 +38,9 @@ int main(int argc, char **argv) {
 
 }
 
-parse_args(int &number, char **pametros) {
+void parse_args(int &number, char **pametros) {
     
+
 }
 
 void open_corpus(std::string folder) {

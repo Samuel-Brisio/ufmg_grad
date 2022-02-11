@@ -74,7 +74,7 @@ void escreve_arquivo(Url_views arr[], int &numb, int id, std::string name) {
 }
 
 
-// obtem os dados necessários atravez do getline 
+// obtem os dados necessários obitidos pelo getline 
 void get_input(std::string &input, std::string &str, int &number) {
     size_t pos = input.find(" ");
     str = input.substr(0, pos);

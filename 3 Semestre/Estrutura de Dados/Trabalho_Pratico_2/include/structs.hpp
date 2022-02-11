@@ -1,5 +1,5 @@
-#ifndef CELULAHPP
-#define CELULAHPP
+#ifndef STRUCTSHPP
+#define STRUCTSHPP
 
 #include <iostream>
 
@@ -21,17 +21,17 @@ struct celula
     }
 };
 
-struct Celula
+struct Url_views
 {
     std::string url;
     int chave;
 
-    void operator = (const Celula &right) {
+    void operator = (const Url_views &right) {
         url = right.url;
         chave = right.chave;
     }
 
-    bool operator > (const Celula &right) const {
+    bool operator > (const Url_views &right) const {
         if (chave > right.chave) return true;
         if (chave == right.chave && url.compare(right.url) < 0) return true;
         return false; 
@@ -39,18 +39,18 @@ struct Celula
     
 };
 
-struct urlViews_fita {
+struct Url_views_tape {
     std::string url;
     int chave;
     int fita;
 
-    void operator = (const urlViews_fita &right) {
+    void operator = (const Url_views_tape &right) {
         url = right.url;
         chave = right.chave;
         fita = right.fita;
     }
 
-    bool operator > (const urlViews_fita &right) {
+    bool operator > (const Url_views_tape &right) {
         if(chave > right.chave) return true;
         if(chave == right.chave) 
             if (url.compare(right.url) < 0) return true;

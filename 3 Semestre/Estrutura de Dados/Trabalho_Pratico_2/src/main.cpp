@@ -10,35 +10,25 @@
 
 #include "msgassert.h"
 #include "memlog.h"
-#include "celula.hpp"
+#include "structs.hpp"
 #include "heap.hpp"
 #include "quicksort.hpp"
 
 #define PATH "/tmp/"
-#define OUTPUT_PATH "output/"
+#define OUTPUT_PATH ""
 #define micro_s std::chrono::microseconds
 
 int heap_id = 0;
+char log_name[100];
+int regem;
+
 
 // Imprimi o array
 template <typename T>
-void imprimi_arr(T arr[], int n, std::ostream &os = std::cout) {
+void imprimi_arr(T arr[], int n, int id, std::ostream &os = std::cout) {
     for(int i = 0; i < n; i++ ) {
         os << arr[i].url << " " << arr[i].chave << std::endl;
-        escreveMemLog((long int) &arr[i], sizeof(T), 0);
-    }
-}
-
-// Retorna uma string com a mensagem de erro
-char* errorMensage(char c) {
-    switch (c)
-    {
-    case 'n':
-        return "Erro: Argumentos 3 e 4 precisam ser numericos";
-    case 'f':
-        return "Erro: Nao foi possivel abrir o arquivo";
-    default:
-        return "Parametro ainda nao definido";
+        escreveMemLog((long int) &arr[i], sizeof(T), id);
     }
 }
 
@@ -54,7 +44,7 @@ bool isNumber(char *str) {
 }
 
 // Le a entrada e salva os dados em um array
-int le_entidade(Celula arr[] , int const &number, std::istream &is) {
+int le_entidade(Url_views arr[] , int const &number, int id, std::istream &is) {
     
     erroAssert(number > 0, "Quantidade de memória invalida");
     
@@ -62,7 +52,7 @@ int le_entidade(Celula arr[] , int const &number, std::istream &is) {
     
     //Le "number" entradas ou menos, caso não tenha mais entrada
     while(is >> arr[i].url >> arr[i].chave) {
-        escreveMemLog((long int)&arr[i], sizeof(Celula), 0);
+        escreveMemLog((long int)&arr[i], sizeof(Url_views), id);
         i++;  
         if(i >= number) break;
     }
@@ -70,7 +60,7 @@ int le_entidade(Celula arr[] , int const &number, std::istream &is) {
     return i;
 }
 
-void escreve_arquivo(Celula arr[], int &numb, std::string name) {
+void escreve_arquivo(Url_views arr[], int &numb, int id, std::string name) {
     
     erroAssert(numb > 0, "Numero de elementos invalidos");
     
@@ -78,7 +68,7 @@ void escreve_arquivo(Celula arr[], int &numb, std::string name) {
 
     erroAssert(outfile.is_open(), "Erro: não foi possivel abrir o aquivo ");
 
-    imprimi_arr(arr, numb, outfile);
+    imprimi_arr(arr, numb, id,outfile);
 
     outfile.close();
 }
@@ -96,25 +86,25 @@ int gera_rodadas(int number, std::istream &is = std::cin) {
 
     erroAssert(number > 0, "Quantidade de memória invalida");
     
-    Celula arr[number];
+    Url_views arr[number];
     int entidades = number;
     int rodada = 0;
 
     while(entidades == number)  {
 
         //salva os dados da entrada em um arr
-        entidades = le_entidade(arr, number, is);
+        entidades = le_entidade(arr, number, rodada, is);
 
         if(entidades == 0) break;
 
         // Ordena o array
-        qs::quicksort(arr, 0, entidades - 1);
+        qs::quicksort(arr, 0, entidades - 1, rodada);
 
         std::string nome = ("rodada-") + std::to_string(rodada);
         nome.append(".txt");
 
         // Salva os dados do array em um arquivo externo
-        if(entidades != 0) escreve_arquivo(arr, entidades, nome);
+        if(entidades != 0) escreve_arquivo(arr, entidades, rodada, nome);
         
         rodada++;
     }
@@ -126,11 +116,11 @@ int gera_rodadas(int number, std::istream &is = std::cin) {
 void intercala(int &number, int rodada, std::string nome_arquivo_de_entrada, std::string nome_arquivo_de_saida) {
 
     //heap datastruct 
-    Heap<urlViews_fita> heap(number, heap_id);
+    Heap<Url_views_tape> heap(number, heap_id);
     heap_id++;
     // array de fitas
     std::ifstream fitas[number];
-    urlViews_fita tmp;
+    Url_views_tape tmp;
     std::string input;
 
     for(int i = 0; i < number; i++) {
@@ -152,7 +142,7 @@ void intercala(int &number, int rodada, std::string nome_arquivo_de_entrada, std
     erroAssert(outFile.is_open(), "Erro: nao foi possivel abrir o arquivo de saida");
 
     while(!heap.vazio()) {
-        urlViews_fita tmp;
+        Url_views_tape tmp;
         tmp = heap.remove();
 
         outFile << tmp.url << " " << tmp.chave << std::endl;
@@ -230,18 +220,27 @@ void intercala_rodadas_maior_fitas(int nFitas, int nRodadas, std::string nomeSai
 
 
 // Verifica, trata e salva os argumentos passados para o programa
-void parse_args(char **argv , std::string &name, std::string &out_name, int &memoria, int &n_fitas) {
-    // Verificar se o arquivo é ponto txt
+void parse_args(int &argc, char **argv , std::string &name, std::string &out_name, int &memoria, int &n_fitas) {
+
     name = argv[1];
     out_name = argv[2];
     
-    erroAssert(isNumber(argv[3]), errorMensage('n'));
+    erroAssert(isNumber(argv[3]), "Erro: O terceiro parametro não é um numero");
     memoria = std::atoi(argv[3]);
     erroAssert(memoria > 0, "Numero de entidades por fita invalido, valor informado eh negativo ou nulo");
-
-    erroAssert(isNumber(argv[4]), errorMensage('n'));
+    erroAssert(isNumber(argv[4]), "Erro: O terceiro parametro não é um numero");
     n_fitas = std::atoi(argv[4]);
     erroAssert(n_fitas > 1, "Numero de fitas invalido, valor informado e menor que 1");
+
+    // caso o nome do arquivo de log seja passado como parametro
+    if(argc == 6) {
+        std::strcpy(log_name, argv[5]);
+        regem = 1;
+    }
+    else {
+        strcpy(log_name, "log.txt");
+        regem = 0;
+    }
 }
 
 int main(int argc, char **argv) {
@@ -255,16 +254,14 @@ int main(int argc, char **argv) {
 
     std::string nome_entrada; // nome do arquivo de entrada
     std::string nome_saida; // nome do arquivo de saida
-    char *str = "/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_2/log.txt";
     int memoria_tamanho; // tamanho da memória, ou a quantidade de entidades por arquivo
     int n_fitas; // Quandidade de fitas que devem ser geradas
-    int regem = 1; 
 
-    parse_args(argv, nome_entrada, nome_saida,memoria_tamanho, n_fitas);
+    parse_args(argc, argv, nome_entrada, nome_saida, memoria_tamanho, n_fitas);
     
-    iniciaMemLog(str);
+    iniciaMemLog(log_name);
 
-    if (regem) ativaMemLog();
+    if(regem)  ativaMemLog();
     else desativaMemLog();
 
     std::ifstream file;
@@ -280,7 +277,9 @@ int main(int argc, char **argv) {
 
     int n_rodadas = gera_rodadas(memoria_tamanho, file);
 
+    auto mid = std::chrono::steady_clock::now();
     defineFaseMemLog(1);
+    heap_id = n_rodadas + 1;
 
     // se o numero de rodadas for maior que o numero de fitas
     if(n_rodadas > n_fitas) {
@@ -296,7 +295,10 @@ int main(int argc, char **argv) {
 
     auto end = std::chrono::steady_clock::now();
 
-    std::cout << std::chrono::duration_cast<micro_s>(end - start).count() << std::endl;
+    auto fase_1 = std::chrono::duration_cast<micro_s>(mid - start).count();
+    auto fase_2 = std::chrono::duration_cast<micro_s>(end - mid).count();
+    auto total = fase_1 + fase_2;
+    std::cout << fase_1 << " " << fase_2 << " " <<total << std::endl;
 
     return finalizaMemLog();
 }

@@ -3,7 +3,6 @@
 
 #include <iostream>
 #include <array>
-#include "heapsort_k.hpp"
 #include "quicksort.hpp"
 #include "memlog.h"
 #include "msgassert.h"
@@ -56,8 +55,10 @@ void Heap<T>::insere(T &elem) {
     tamanho++;
     arr[fim] = elem;
     escreveMemLog( (long int) &arr[fim], sizeof(T), id);
-    heapSort(arr, fim + 1);
-    //qs::quicksort(arr, inicio, fim);
+    qs::quicksort(arr, inicio, fim, id);
+
+    // Troca o maior elemento que está na primeira posição com o ultimo
+    std::swap(arr[inicio], arr[fim]);
 }
 
 template <typename T>

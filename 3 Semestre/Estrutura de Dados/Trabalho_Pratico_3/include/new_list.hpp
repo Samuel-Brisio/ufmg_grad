@@ -101,7 +101,7 @@ void Lista<T, U>::inseri_no_fim(U &elem)
 {
     //Caso a lista esteja vazia
     if(tamanho == 0) {
-        inseri_no_inicio(chave);
+        inseri_no_inicio(elem);
         return;
     }
 
@@ -135,8 +135,8 @@ U Lista<T, U>::remove_no_inicio()
     // Caso o ultimo elemento restante da lista seja removido
     if(inicio->prox == nullptr) fim = inicio;
 
-    item = aux->item;
-    delete(aux);
+    item = aux_ptr->item;
+    delete(aux_ptr);
 
     return item;
 

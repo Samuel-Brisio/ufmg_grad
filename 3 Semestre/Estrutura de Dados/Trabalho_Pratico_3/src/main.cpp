@@ -28,7 +28,7 @@ std::string output_name; // output file name
 std::string folder_path; // path for the folder that contais the corpus
 int number_of_files; // number of files in the corpus
 std::string stopwords_file_name;
-
+Lista<Stopword_pointer, Stopword> stopwords; // Lista encadeada que irá armazenar as stopwords
 //todo   // list of files from the corpus
 //todo   // list of files that contain only vocabulaty words
 
@@ -101,6 +101,10 @@ int open_corpus(std::string path) {
 
     return i;
 
+}
+
+void read_stopwords() {
+    return;
 }
 
 /*

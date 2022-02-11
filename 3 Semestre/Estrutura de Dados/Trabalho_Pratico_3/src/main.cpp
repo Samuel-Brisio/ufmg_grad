@@ -2,26 +2,33 @@
 #include <fstream>
 #include <getopt.h>
 #include <string>
+#include <filesystem>
 
 //External Library
 #include "msgassert.h"
 #include "memlog.h"
+
+//Self implemented data struct
+#include "new_list.hpp"
 
 #define PROCESSFILEFOLDER "Processo/"
 #define ALPHABET_LETTER 26
 
 //function prototype
 void parse_args(int &number, char **pametros);
-void open_corpus(std::string folder);
+int open_corpus(std::string folder);
+void read_stopwords();
 void inverse_index_gen();
 void find_vocabulary();
+void use_instruction();
 
 //global variables
 std::string input_name; // input file name
 std::string output_name; // output file name 
-std::string path_folder; // path for the folder that contais the corpus
+std::string folder_path; // path for the folder that contais the corpus
 int number_of_files; // number of files in the corpus
 std::string stopwords_file_name;
+
 //todo   // list of files from the corpus
 //todo   // list of files that contain only vocabulaty words
 
@@ -31,12 +38,14 @@ int main(int argc, char **argv) {
     // separa os argumentos passados para o programa
     parse_args(argc, argv);
 
-    /*
-    // abre os documentos
-    open_corpus();
-
     //le o arquivo de stopwords
-    open_stopwords();
+    read_stopwords();
+
+    // abre os documentos
+    number_of_files = open_corpus(folder_path);
+
+    /*
+    
 
     //encontra o vocabulario
     find_vocabulary();
@@ -53,7 +62,7 @@ void parse_args(int &number, char **parameters) {
 
     int c;
 
-    while((c = getopt(number, parameters, "i:o:c:s:h"))) {
+    while((c = getopt(number, parameters, "i:o:c:s:h")) != EOF) {
         switch (c)
         {
         case 'i':
@@ -63,26 +72,38 @@ void parse_args(int &number, char **parameters) {
             output_name.assign(optarg);
             break;
         case 'c':
-            path_folder.assign(optarg);
+            folder_path.assign(optarg);
             break;
         case 's':
             stopwords_file_name.assign(optarg);
             break;
         case 'h':
-        case '?':
         default:
+            use_instruction();
             break;
         }
     }
 
 }
 
-/*
+void use_instruction() {
+    std::cout << "Instruction how to use" << std::endl;
+    exit(1);
+}
 
-void open_corpus(std::string folder) {
+int open_corpus(std::string path) {
+    int i = 0;
+
+    for (const auto & entry : std::filesystem::directory_iterator(path)) {
+    std::cout << entry.path() << std::endl;
+    i++;
+    }
+
+    return i;
 
 }
 
+/*
 void find_vocabulary() {
     //Creat new files with only the words from vocabulary
     //todo

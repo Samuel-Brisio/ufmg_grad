@@ -7,6 +7,8 @@ OBJ_FOLDER = obj
 SRC_FOLDER = src
 CXXFLAGS = -Wall -c -I$(INC_FOLDER)
 
+#especificar qual versão do compilador utilizar
+
 OBJS = $(OBJ_FOLDER)/main.o $(OBJ_FOLDER)/memlog.o
 HDRS = $(wildcard $(INC_FOLDER)/*.h) $(wildcard $(INC_FOLDER)/*.hpp)
 SRCS = $(wildcard $(SRC_FOLDER)/*.cpp) $(wildcard $(SRC_FOLDER)/*.c)

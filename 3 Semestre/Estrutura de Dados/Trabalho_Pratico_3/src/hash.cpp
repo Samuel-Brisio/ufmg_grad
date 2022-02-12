@@ -22,7 +22,14 @@ long int Hash_String::hash_it(std::string &str) {
     return hash % table_size;
 }
 
-void Hash_String::insert(long int &hash, std::string &key, Pair &item) {
+void Hash_String::insert(long int &hash, Pair &item) {
+
+   hashtable[hash].value.inseri_no_fim(item);
+}
+
+void Hash_String::insert(std::string &key, Pair &item) {
+
+    int hash = hash_it(key);
 
     while(occupied[hash]) {
         

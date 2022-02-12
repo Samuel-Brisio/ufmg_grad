@@ -19,7 +19,8 @@ class Hash_String {
         ~Hash_String();
 
         long int hash_it(std::string &str);
-        void insert(long int &hash, std::string &key, Pair &item);
+        void insert(long int &hash, Pair &item);
+        void insert(std::string &key, Pair &item);
         void remove(long int &hash);
     
     private:

@@ -32,8 +32,8 @@ std::string output_name; // output file name
 std::string folder_path; // path for the folder that contais the corpus
 int number_of_files; // number of files in the corpus
 std::string stopwords_file_name;
-Lista<Word_pointer, Word> stopwords; // linked list that store the vocabulary
-Unic_List<Word_pointer, Word> vocabulary; // linked list that store the vocabulary
+Lista<Word> stopwords; // linked list that store the vocabulary
+Unic_List<Word> vocabulary; // linked list that store the vocabulary
 //todo   // list of files from the corpus
 //todo   // list of files that contain only vocabulary words
 
@@ -49,11 +49,8 @@ int main(int argc, char **argv) {
     // abre os documentos
     number_of_files = open_corpus(folder_path);
 
-    /*
     //gera o indice inverso
-    inverse_index_gen();
-    */
-
+    //inverse_index_gen();
 
 }
 
@@ -150,7 +147,7 @@ void to_lowercase(std::string &word) {
 }
 
 bool is_stopword(std::string &word) {
-    Word_pointer *aux = stopwords.get_primeiro_elemento();
+    Cell<Word> *aux = stopwords.get_primeiro_elemento();
 
     while(aux != nullptr) {
         if(word.compare(aux->item.chave) == 0) return true;
@@ -182,33 +179,7 @@ void remove_special_characters(std::string &word) {
 
     word.assign(new_word);
 }
-
 /*
-void find_vocabulary() {
-    //Creat new files with only the words from vocabulary
-    //todo
-
-    std::string words;
-
-    for(int i = 0; i < number_of_files; i++) {
-        while(original_documents[i] >> word) {
-
-            if(is_stopword(word)) continue;
-
-            remove_special_chracters(word);
-
-            to_lowercase(word);
-
-            only_vocabulary_files[i] << word << " ";
-            
-            //insert the word in the vocabulary list
-            //the list accept only unic elements
-            vocabulaty.add(word);
-        }
-
-    }
-}
-
 void inverse_index_gen() {
 
     int vocabulary_size = //todo

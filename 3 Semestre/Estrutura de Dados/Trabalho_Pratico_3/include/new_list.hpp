@@ -5,9 +5,16 @@
 #include "msgassert.h"
 #include "celula.hpp"
 
-// T é a celula que será usada como pointer
+template <typename T>
+struct Cell {
+    T item;
+    Cell *prox;
+
+    Cell(): item(), prox(nullptr) {}
+};
+
 // U é um Item que está contido dentro da célula
-template <typename T, typename U>
+template <typename U>
 class Lista {
     public:
         Lista();
@@ -15,8 +22,8 @@ class Lista {
 
         int get_tamanho();
 
-        T* get_primeiro_elemento();
-        T* get_ultimo_elemento();
+        Cell<U>* get_primeiro_elemento();
+        Cell<U>* get_ultimo_elemento();
 
         void inseri_no_inicio(U &chave);
         void inseri_no_fim(U &chave);
@@ -28,25 +35,25 @@ class Lista {
 
     protected:
         int tamanho;
-        T* inicio;
-        T* fim;
+        Cell<U>* inicio;
+        Cell<U>* fim;
 
 };
 
-template <typename T, typename U>
-Lista<T, U>::Lista()
+template <typename U>
+Lista<U>::Lista()
 // Descrição: Inicializa os atributos
 // Entrada: Nenhuma
 // Saida: Nenhuma
 {
     tamanho = 0;
-    inicio = new (T);
+    inicio = new (Cell<U>);
     fim = inicio;
 }
 
 
-template <typename T, typename U>
-Lista<T, U>::~Lista()
+template <typename U>
+Lista<U>::~Lista()
 // Descricao: Desaloca a memória
 // Entrada: Nenhuma
 // Saida: Nenhuma
@@ -55,8 +62,8 @@ Lista<T, U>::~Lista()
     delete inicio;
 }
 
-template <typename T, typename U>
-int Lista<T, U>::get_tamanho()
+template <typename U>
+int Lista<U>::get_tamanho()
 // Descricao: Retorna o tamanho da lista
 // Entrada: Nenhuma
 // Saida: tamanho
@@ -64,13 +71,13 @@ int Lista<T, U>::get_tamanho()
     return tamanho;
 }
 
-template <typename T, typename U>
-T* Lista<T, U>::get_primeiro_elemento() {
+template <typename U>
+Cell<U>* Lista<U>::get_primeiro_elemento() {
     return inicio->prox;
 }
 
-template <typename T, typename U>
-T* Lista<T, U>::get_ultimo_elemento()
+template <typename U>
+Cell<U>* Lista<U>::get_ultimo_elemento()
 // Descricao: Retorna o porteiro do ultimo elemento da lista
 // Entrada: Nenhuma
 // Saida: fim
@@ -78,14 +85,14 @@ T* Lista<T, U>::get_ultimo_elemento()
     return fim;
 }
 
-template <typename T, typename U>
-void Lista<T, U>::inseri_no_inicio(U &elem)
+template <typename U>
+void Lista<U>::inseri_no_inicio(U &elem)
 // Descricao: Insere no inicio da lista
 // Entrada: chave;
 // Saida: Nenhuma
 {
     //cria uma nova celula
-    T *nova_celula = new(T);
+    Cell<U> *nova_celula = new(Cell<U>);
     nova_celula->item = elem;
 
     //Insere o elemento no inicio da lista
@@ -98,8 +105,8 @@ void Lista<T, U>::inseri_no_inicio(U &elem)
     if(tamanho == 1) fim = nova_celula;
 }
 
-template <typename T, typename U>
-void Lista<T, U>::inseri_no_fim(U &elem)
+template <typename U>
+void Lista<U>::inseri_no_fim(U &elem)
 // Descricao: Insere o elemento no final da lista
 // Entrada: chave
 // Saida: Nenhuma
@@ -111,7 +118,7 @@ void Lista<T, U>::inseri_no_fim(U &elem)
     }
 
     //cria uma nova celula
-    T *nova_celula = new(T);
+    Cell<U> *nova_celula = new(Cell<U>);
     nova_celula->item = elem;
 
     //Insere o elemento no final da lista
@@ -121,13 +128,13 @@ void Lista<T, U>::inseri_no_fim(U &elem)
     tamanho++;
 }
 
-template <typename T, typename U>
-U Lista<T, U>::remove_no_inicio()
+template <typename U>
+U Lista<U>::remove_no_inicio()
 // Descricao: Remove o primeiro elemento da lista
 // Entrada: Nenhuma
 // Saida: item
 {
-    T *aux_ptr;
+    Cell<U> *aux_ptr;
     U item;
 
     if(tamanho == 0) throw "Lista Vazia";
@@ -147,8 +154,8 @@ U Lista<T, U>::remove_no_inicio()
 
 }
 
-template <typename T, typename U>
-void Lista<T, U>::remove_tudo()
+template <typename U>
+void Lista<U>::remove_tudo()
 // Descricao: Remove todos os elemetos da lista
 // Entrada: Nenhuma
 // Saida: Nenhuma
@@ -156,13 +163,13 @@ void Lista<T, U>::remove_tudo()
     while(tamanho != 0) remove_no_inicio();
 }
 
-template <typename T, typename U>
-void Lista<T, U>::imprime_tudo(std::ostream &os)
+template <typename U>
+void Lista<U>::imprime_tudo(std::ostream &os)
 // Descricao: Imprime todos os elementos da lista
 // Entrada: Nenhuma
 // Saida: Nenhuma
 {
-    T *aux = inicio->prox;
+    Cell<U> *aux = inicio->prox;
 
     while(aux != nullptr) {
         aux->item.imprime(os);

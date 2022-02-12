@@ -3,8 +3,9 @@
 
 #include <iostream>
 #include <string>
+#include "celula.hpp"
 
-// structs utlizadas para o armazenamento das stopwords
+// structs utlizadas para o armazenamento das stopwords e do vocabulario
 
 struct Word {
     std::string chave;
@@ -15,14 +16,12 @@ struct Word {
     bool operator == (Word const &right) const;
 };
 
+// structs used in hash
 
-struct Word_pointer {
-    Word item;
-    Word_pointer *prox;
-
-    Word_pointer();
+struct Item {
+    std::string key;
+    //Lista<Item> value;
 };
-
 
 
 #endif

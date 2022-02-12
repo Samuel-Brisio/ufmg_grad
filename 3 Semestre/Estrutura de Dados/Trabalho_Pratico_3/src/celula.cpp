@@ -10,5 +10,3 @@ void Word::imprime(std::ostream &os) {
 bool Word::operator == (Word const &right) const{
     return (chave.compare(right.chave) == 0);
 }
-
-Word_pointer::Word_pointer() : item(), prox(nullptr) {}

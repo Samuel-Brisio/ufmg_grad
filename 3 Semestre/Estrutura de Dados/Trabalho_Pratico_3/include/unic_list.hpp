@@ -3,30 +3,30 @@
 
 #include "new_list.hpp"
 
-template <typename T, typename U>
-class Unic_List : public Lista<T, U> {
+template <typename T>
+class Unic_List : public Lista<T> {
     public:
         Unic_List();
         ~Unic_List();
 
-        bool insert(U &elem);
+        bool insert(T &elem);
 
     private:
 
 };
 
-template <typename T, typename U>
-Unic_List<T, U>::Unic_List(): Lista<T, U>() {}
+template <typename T>
+Unic_List<T>::Unic_List(): Lista<T>() {}
 
 
-template <typename T, typename U>
-Unic_List<T, U>::~Unic_List() {
+template <typename T>
+Unic_List<T>::~Unic_List() {
 
 }
 
-template <typename T, typename U>
-bool Unic_List<T, U>::insert(U &elem) {
-    T *aux = this->inicio->prox;
+template <typename T>
+bool Unic_List<T>::insert(T &elem) {
+    Cell<T> *aux = this->inicio->prox;
 
     while(aux != nullptr) {
         if(aux->item == elem) return false;

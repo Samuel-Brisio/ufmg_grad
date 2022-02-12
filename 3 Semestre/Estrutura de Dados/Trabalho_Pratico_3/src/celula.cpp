@@ -1,10 +1,14 @@
 #include "celula.hpp"
 
 
-Stopword::Stopword() : chave() {}
+Word::Word() : chave() {}
 
-void Stopword::imprime(std::ostream &os) {
-    std::cout << chave << std::endl;
+void Word::imprime(std::ostream &os) {
+    os << chave << std::endl;
 }
 
-Stopword_pointer::Stopword_pointer() : item(), prox(nullptr) {}
+bool Word::operator == (Word const &right) const{
+    return (chave.compare(right.chave) == 0);
+}
+
+Word_pointer::Word_pointer() : item(), prox(nullptr) {}

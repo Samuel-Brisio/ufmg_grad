@@ -6,19 +6,21 @@
 
 // structs utlizadas para o armazenamento das stopwords
 
-struct Stopword {
+struct Word {
     std::string chave;
 
-    Stopword();
+    Word();
     void imprime(std::ostream &os = std::cout);
+
+    bool operator == (Word const &right) const;
 };
 
 
-struct Stopword_pointer {
-    Stopword item;
-    Stopword_pointer *prox;
+struct Word_pointer {
+    Word item;
+    Word_pointer *prox;
 
-    Stopword_pointer();
+    Word_pointer();
 };
 
 

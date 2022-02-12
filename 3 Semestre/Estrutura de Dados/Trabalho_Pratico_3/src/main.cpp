@@ -10,6 +10,7 @@
 
 //Self implemented data struct
 #include "new_list.hpp"
+#include "unic_list.hpp"
 
 #define PROCESS_FILE_FOLDER "Processo/"
 #define ALPHABET_LETTER 26
@@ -31,9 +32,10 @@ std::string output_name; // output file name
 std::string folder_path; // path for the folder that contais the corpus
 int number_of_files; // number of files in the corpus
 std::string stopwords_file_name;
-Lista<Stopword_pointer, Stopword> stopwords; // Lista encadeada que irá armazenar as stopwords
+Lista<Word_pointer, Word> stopwords; // linked list that store the vocabulary
+Unic_List<Word_pointer, Word> vocabulary; // linked list that store the vocabulary
 //todo   // list of files from the corpus
-//todo   // list of files that contain only vocabulaty words
+//todo   // list of files that contain only vocabulary words
 
 
 int main(int argc, char **argv) {
@@ -48,11 +50,6 @@ int main(int argc, char **argv) {
     number_of_files = open_corpus(folder_path);
 
     /*
-    
-
-    //encontra o vocabulario
-    find_vocabulary();
-
     //gera o indice inverso
     inverse_index_gen();
     */
@@ -122,7 +119,9 @@ int open_corpus(std::string path) {
             if(word.size() == 0) continue;
 
             only_vocabulary_file << word << " ";
-            vocabulary.insert(word);
+            Word elem;
+            elem.chave = word;
+            vocabulary.insert(elem);
         }
         
         input_file.close();
@@ -140,7 +139,7 @@ void read_stopwords() {
 
     erroAssert(stopwords_file.is_open(), "Erro: nao foi possivel abrir o arquivo de stopwords");
 
-    Stopword word;
+    Word word;
     while(stopwords_file >> word.chave) stopwords.inseri_no_fim(word);
 }
 
@@ -151,7 +150,7 @@ void to_lowercase(std::string &word) {
 }
 
 bool is_stopword(std::string &word) {
-    Stopword_pointer *aux = stopwords.get_primeiro_elemento();
+    Word_pointer *aux = stopwords.get_primeiro_elemento();
 
     while(aux != nullptr) {
         if(word.compare(aux->item.chave) == 0) return true;

@@ -18,9 +18,12 @@ struct Word {
 
 // structs used in hash
 
-struct Item {
-    std::string key;
-    //Lista<Item> value;
+struct Pair {
+    int id;
+    int frequency;
+
+    Pair();
+    Pair(int id, int number);
 };
 
 

@@ -11,9 +11,11 @@
 //Self implemented data struct
 #include "new_list.hpp"
 #include "unic_list.hpp"
+#include "hash.hpp"
 
 #define PROCESS_FILE_FOLDER "Processo/"
 #define ALPHABET_LETTER 26
+#define HASHTABLE_SIZE 1000000009
 
 //function prototype
 void parse_args(int &number, char **pametros);
@@ -179,37 +181,45 @@ void remove_special_characters(std::string &word) {
 
     word.assign(new_word);
 }
-/*
 void inverse_index_gen() {
 
-    int vocabulary_size = //todo
+    long int size = HASHTABLE_SIZE;
+    int number_of_letters = ALPHABET_LETTER;
 
-    // creat hash table
-    //Hash invert_index
-    //todo
+    //creat a hash table that will store the inverse index
+    hash::Hash_String_Pair inverse_index(size, number_of_letters);
 
     // creat a hash table to use in a one document
-    // Hash<int> count_of_words
-    // todo
+    hash::Hash_String_Int count_of_words(size, number_of_letters);
+    
+    //inicialize both hash table
+    inverse_index.initialize(vocabulary);
+    count_of_words.initialize(vocabulary);
 
     int i = 0;
     // laço externo intera sobre cada documento
-    for(auto doc: only_vocabulaty_files) {
+    std::ifstream corpus[number_of_files];
 
-        int i = 0;
-        //le as palavras do documento até o final do arquivo
+    for(auto doc: corpus) {
+
+        std::string file_name = PROCESS_FILE_FOLDER;
+        file_name.append(std::to_string(i));
+        
+        doc.open(file_name);
+        erroAssert(doc.is_open(), "Erro: nao foi possivel abrir o arquivo");
+
+        std::string word;
+        
+        // read the word of the document to the end
         while(doc >> word) {
-            count_of_words.increment(word); //word -> key
-            //or
-            int value = count_of_words.get_value(word); // word -> key
-            count_of_words.set_value(word, value + 1);
+            count_of_words.increment(word);
         }
 
-        //insert the count_of_words, inside of invert_index
-        for(auto elem: count_words) {  //elem -> keys and values
+        //insert the count_of_words inside of invert_index
+        for(int j = 0; j < size; j++) {  //elem -> keys and values
             
             // if the word dont show on the file
-            if(elem.value == 0) continue;
+            if( == 0) continue;
 
             else {
                 invert_index.insert(elem.key, i, elem.value);
@@ -222,5 +232,3 @@ void inverse_index_gen() {
         i++;
     }
 }
-
-*/

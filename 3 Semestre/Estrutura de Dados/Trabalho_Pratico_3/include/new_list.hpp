@@ -25,8 +25,8 @@ class Lista {
         Cell<U>* get_primeiro_elemento();
         Cell<U>* get_ultimo_elemento();
 
-        void inseri_no_inicio(U &chave);
-        void inseri_no_fim(U &chave);
+        void inseri_no_inicio(U &elem);
+        void inseri_no_fim(U &elem);
 
         U remove_no_inicio();
 

@@ -19,6 +19,7 @@ namespace hash {
         
         protected:
             bool *occupied;
+            bool *has_value;
             long int table_size;
             int n_letters;
     };
@@ -39,6 +40,8 @@ namespace hash {
             void initialize(Lista<Word> &list);
             void insert(long int &hash, Pair &item);
             void insert(std::string &key, Pair &item);
+            void increment(long int &hash, int &id);
+            void print_all(std::ostream &os);
 
         private:
             Cell_Pair *hashtable;

@@ -10,6 +10,7 @@ hash::Cell_Int::Cell_Int(): key(), value(0) {}
 
 hash::Hash_String::Hash_String(long int &size, int &number_of_letters): table_size(size), n_letters(number_of_letters) {
     this->occupied = new bool[size]{0};
+    this->has_value = new bool[size]{0};
 }
 
 hash::Hash_String::~Hash_String() {
@@ -17,11 +18,12 @@ hash::Hash_String::~Hash_String() {
 }
 
 long int hash::Hash_String::hash_it(std::string &key) {
-    int hash = 0;
+    long long int hash = 0;
 
     int i = 0;
     for(auto c: key) {
-        hash += int( (int(c - 'a' + 1)) * pow(n_letters, i) );
+        hash += (long long int)( (int(c - 'a' + 1)) * pow(n_letters, i) );
+        if(i > 7) break;
         i++;
     }
 
@@ -87,6 +89,8 @@ void hash::Hash_String_Pair::initialize(Lista<Word> &list) {
 void hash::Hash_String_Pair::insert(long int &hash, Pair &item) {
 
    hashtable[hash].value.inseri_no_fim(item);
+   occupied[hash] = true;
+   has_value[hash] = true;
 }
 
 void hash::Hash_String_Pair::insert(std::string &key, Pair &item) {
@@ -107,6 +111,35 @@ void hash::Hash_String_Pair::insert(std::string &key, Pair &item) {
     hashtable[hash].key = key;
     hashtable[hash].value.inseri_no_fim(item);
     occupied[hash] = true;
+    has_value[hash] = true;
+}
+
+void hash::Hash_String_Pair::increment(long int &hash, int &id) {
+    Cell<Pair>* ptr = hashtable[hash].value.get_primeiro_elemento();
+
+    while(ptr != nullptr) {
+        if(ptr->item.id == id) break;
+        ptr = ptr->prox;
+    }
+
+    if(ptr == nullptr) {
+        Pair aux(id, 0);
+        insert(hash, aux);
+    }
+
+    ptr = hashtable[hash].value.get_ultimo_elemento();
+
+    ptr->item.frequency++;
+}
+
+void hash::Hash_String_Pair::print_all(std::ostream &os = std::cout) {
+    for(int i = 0; i < this->table_size; i++) {
+        if(has_value[i]) {
+            os << hashtable[i].key << " ---> ";
+            hashtable[i].value.imprime_tudo(os);
+            os << std::endl;
+        }
+    }
 }
 
 

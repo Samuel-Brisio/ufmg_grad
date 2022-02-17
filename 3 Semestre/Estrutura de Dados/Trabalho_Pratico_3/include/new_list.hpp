@@ -31,7 +31,7 @@ class Lista {
         U remove_no_inicio();
 
         void remove_tudo();
-        void imprime_tudo(std::ostream &os);
+        void imprime_tudo(std::ostream &os = std::cout);
 
     protected:
         int tamanho;

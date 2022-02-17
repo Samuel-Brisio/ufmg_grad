@@ -24,6 +24,8 @@ struct Pair {
 
     Pair();
     Pair(int id, int number);
+
+    void imprime(std::ostream &os = std::cout);
 };
 
 

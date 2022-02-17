@@ -14,3 +14,7 @@ bool Word::operator == (Word const &right) const{
 Pair::Pair(): id(0), frequency(0) {}
 
 Pair::Pair(int id, int number): id(id), frequency(number) {}
+
+void Pair::imprime(std::ostream &os) {
+    os << "( " << this->id << " , " << this->frequency << " ) ";
+}

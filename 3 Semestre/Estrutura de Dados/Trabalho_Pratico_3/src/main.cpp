@@ -13,9 +13,9 @@
 #include "unic_list.hpp"
 #include "hash.hpp"
 
-#define PROCESS_FILE_FOLDER "Processo/"
+#define PROCESS_FILE_FOLDER "/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/Processo/"
 #define ALPHABET_LETTER 26
-#define HASHTABLE_SIZE 1000000009
+#define HASHTABLE_SIZE 12400001
 
 //function prototype
 void parse_args(int &number, char **pametros);
@@ -51,8 +51,9 @@ int main(int argc, char **argv) {
     // abre os documentos
     number_of_files = open_corpus(folder_path);
 
+    std::cout << vocabulary.get_tamanho() << std::endl;
     //gera o indice inverso
-    //inverse_index_gen();
+    inverse_index_gen();
 
 }
 
@@ -165,6 +166,10 @@ void remove_special_characters(std::string &word) {
     int index_that_need_to_be_kept[100];
     
     for(auto c: word) {
+        if(std::isdigit(c)) {
+            word.assign("");
+            return;
+        }
         if((c >= 'a' && c <= 'z')) {
             index_that_need_to_be_kept[size] = i;
             size++;
@@ -196,39 +201,30 @@ void inverse_index_gen() {
     inverse_index.initialize(vocabulary);
     count_of_words.initialize(vocabulary);
 
-    int i = 0;
     // laço externo intera sobre cada documento
     std::ifstream corpus[number_of_files];
 
-    for(auto doc: corpus) {
+    for(int i = 0; i < number_of_files; i++) {
 
         std::string file_name = PROCESS_FILE_FOLDER;
         file_name.append(std::to_string(i));
         
-        doc.open(file_name);
-        erroAssert(doc.is_open(), "Erro: nao foi possivel abrir o arquivo");
+        corpus[i].open(file_name);
+        erroAssert(corpus[i].is_open(), "Erro: nao foi possivel abrir o arquivo");
 
         std::string word;
         
         // read the word of the document to the end
-        while(doc >> word) {
-            count_of_words.increment(word);
+        while(corpus[i] >> word) {
+            long int hash = inverse_index.get_hash(word);
+            inverse_index.increment(hash, i);
         }
-
-        //insert the count_of_words inside of invert_index
-        for(int j = 0; j < size; j++) {  //elem -> keys and values
-            
-            // if the word dont show on the file
-            if( == 0) continue;
-
-            else {
-                invert_index.insert(elem.key, i, elem.value);
-                //or
-                Item item(i, value);
-                invert_index.insert(elem.keym, item);
-            }
-        }
-
-        i++;
     }
+
+    for(int i = 0; i < number_of_files; i++) corpus[i].close();
+
+    std::ofstream inverse_index_file("/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/outros/invert_index");
+    erroAssert(inverse_index_file.is_open(), "Erro: nao foi possivel abrir o arquivo");
+
+    inverse_index.print_all(inverse_index_file);
 }

@@ -67,6 +67,10 @@ long int hash::Hash_String_Pair::get_hash(std::string &key) {
     return -1;
 }
 
+Cell<Pair>* hash::Hash_String_Pair::get_first_element(long int &hash) {
+    return hashtable[hash].value.get_primeiro_elemento();
+}
+
 void hash::Hash_String_Pair::initialize(Lista<Word> &list) {
 
     Cell<Word> *aux = list.get_primeiro_elemento();

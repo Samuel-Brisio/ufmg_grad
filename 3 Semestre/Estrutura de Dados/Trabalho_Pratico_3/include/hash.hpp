@@ -36,6 +36,7 @@ namespace hash {
             ~Hash_String_Pair();
 
             long int get_hash(std::string &key);
+            Cell<Pair>* get_first_element(long int &hash);
 
             void initialize(Lista<Word> &list);
             void insert(long int &hash, Pair &item);

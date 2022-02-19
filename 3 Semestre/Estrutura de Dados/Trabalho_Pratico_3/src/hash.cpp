@@ -121,11 +121,13 @@ void hash::Hash_String_Pair::insert(std::string &key, Pair &item) {
 void hash::Hash_String_Pair::increment(long int &hash, int &id) {
     Cell<Pair>* ptr = hashtable[hash].value.get_primeiro_elemento();
 
+    //search for the element with the id
     while(ptr != nullptr) {
         if(ptr->item.id == id) break;
         ptr = ptr->prox;
     }
 
+    //if element not find, insert it
     if(ptr == nullptr) {
         Pair aux(id, 0);
         insert(hash, aux);

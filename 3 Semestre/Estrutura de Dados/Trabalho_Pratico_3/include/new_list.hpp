@@ -48,6 +48,7 @@ Lista<U>::Lista()
 {
     tamanho = 0;
     inicio = new (Cell<U>);
+    inicio->prox = nullptr;
     fim = inicio;
 }
 
@@ -73,6 +74,7 @@ int Lista<U>::get_tamanho()
 
 template <typename U>
 Cell<U>* Lista<U>::get_primeiro_elemento() {
+    if(tamanho == 0) return nullptr;
     return inicio->prox;
 }
 

@@ -21,8 +21,9 @@
 
 //function prototype
 void parse_args(int &number, char **pametros);
-int count_number_of_files(std::string &path);
-void open_corpus(std::string folder);
+int get_number_of_files(std::string path);
+int open_corpus(std::string path, int documet_indexes[]);
+int get_document_index(std::string str);
 void read_stopwords();
 void read_search_file();
 void to_lowercase(std::string &word);
@@ -44,7 +45,7 @@ void search_sum_weights(double sum_matrix[], bool **search_matrix, double **weig
 void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[]);
 int find_index(std::string word);
 void find_indexes(int indexes[]);
-void greater_relevance(double arr[]);
+void greater_relevance(double similarity_arr[], int document_index[]);
 
 //global variables
 std::string input_name; // input file name
@@ -66,11 +67,18 @@ int main(int argc, char **argv) {
 
     // read the search file
     read_search_file();
-
-    number_of_files = count_number_of_files(folder_path);
     
-    // abre os documentos
-    open_corpus(folder_path);
+    // count the number of words
+    number_of_files = get_number_of_files(folder_path);
+
+    //document index store the index
+    // non sequencial file name
+    int document_indexes[number_of_files];
+    
+    // open the corpus
+    // remove the stopwords and invalid words
+    // remove special characters
+    open_corpus(folder_path, document_indexes);
 
     long int size = HASHTABLE_SIZE;
     int number_of_letters = ALPHABET_LETTER;
@@ -97,7 +105,6 @@ int main(int argc, char **argv) {
     erroAssert(output_file.is_open(), "Error: Couldn't open the file");
 
 
-
     //find the search weight
     bool **search_weight;
     rows = search_words.get_tamanho();
@@ -119,7 +126,7 @@ int main(int argc, char **argv) {
 
     search_sum_weights_norm(search_sum, document_weight, indexes);
 
-    greater_relevance(search_sum);
+    greater_relevance(search_sum, document_indexes);
 
     delete_matrix(document_weight, rows, columns);
     delete_matrix(search_weight, rows, columns);
@@ -161,32 +168,34 @@ void use_instruction() {
     exit(1);
 }
 
-int count_number_of_files(std::string &path) {
+int get_number_of_files(std::string path) {
     int count = 0;
-    for (const auto &doc : std::filesystem::directory_iterator(path)) {
-        count++;
-    }
+
+    for(const auto &doc : std::filesystem::directory_iterator(path)) count++;
 
     return count;
 }
 
-void open_corpus(std::string path) {
 
+int open_corpus(std::string path, int document_indexes[]) {
 
+    int count = 0;
 
-    for(int i = 0; i < number_of_files; i++) {
-        
-        std::string file_name = path;
-        file_name.push_back('/');
-        file_name.append(std::to_string(i));
+    for(const auto &doc : std::filesystem::directory_iterator(path)) {
 
+        //open the document
         std::ifstream input_file;
-        input_file.open(file_name);
+        input_file.open(doc.path());
         erroAssert(input_file.is_open(), "Erro: nao foi possivel abrir o arquivo");
         
-        file_name = PROCESS_FILE_FOLDER;
-        file_name.append(std::to_string(i));
 
+        //archive's name that will contain the acceptable words
+        std::string file_name = PROCESS_FILE_FOLDER;
+        file_name.append(std::to_string(count));
+
+        document_indexes[count] = get_document_index(doc.path().filename());
+
+        // open file that will only have acceptable words
         std::ofstream only_vocabulary_file;
         only_vocabulary_file.open(file_name);
         erroAssert(only_vocabulary_file.is_open(), "Erro: nao foi possivel abrir o arquivo");
@@ -209,9 +218,20 @@ void open_corpus(std::string path) {
             vocabulary.insert(elem);
         }
         
+        count++;
         input_file.close();
         only_vocabulary_file.close();
     }
+    return count;
+}
+
+int get_document_index(std::string str) {
+    size_t pos = str.find(".txt");
+    if(pos != std::string::npos) {
+        str.erase(str.begin() + pos, str.end());
+    }
+
+    return std::stoi(str);
 }
 
 void read_stopwords() {
@@ -277,29 +297,31 @@ void remove_special_characters(std::string &word) {
 
     word.assign(new_word);
 }
+
 void inverse_index_gen(hash::Hash_String_Pair &hashtable) {
 
     // laço externo intera sobre cada documento
-    std::ifstream corpus[number_of_files];
 
     for(int i = 0; i < number_of_files; i++) {
 
         std::string file_name = PROCESS_FILE_FOLDER;
         file_name.append(std::to_string(i));
         
-        corpus[i].open(file_name);
-        erroAssert(corpus[i].is_open(), "Erro: nao foi possivel abrir o arquivo");
+        std::ifstream doc(file_name);
+        erroAssert(doc.is_open(), "Erro: nao foi possivel abrir o arquivo");
 
         std::string word;
         
         // read the word of the document to the end
-        while(corpus[i] >> word) {
+        while(doc >> word) {
             long int hash = hashtable.get_hash(word);
+            erroAssert(hash != -1, "Error: word not find");
             hashtable.increment(hash, i);
         }
+
+        doc.close();
     }
 
-    for(int i = 0; i < number_of_files; i++) corpus[i].close();
 }
 
 template <typename T>
@@ -316,9 +338,13 @@ T** create_matrix(int &rows, int &columns) {
 
 template <typename T>
 void initialize_matrix(T **matrix, int &rows, int &columns) {
+    std::ofstream debug("/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/outros/debug.txt");
+    erroAssert(debug.is_open(), "Erro");
+
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < columns; j++) {
             matrix[i][j] = 0;
+            debug << i << " " << j << std::endl;
         }
     }
 }
@@ -451,22 +477,19 @@ void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[
     }
 }
 
-void greater_relevance(double arr[]) {
+void greater_relevance(double similarity_arr[], int document_index[]) {
     // if the number_of_files is less than 10 range is equal number_of_files, else range is equal 10
     int range = number_of_files < 10 ? number_of_files : 10;
 
-    int arr_index[number_of_files];
-
-    for(int i = 0; i < number_of_files; i++) arr_index[i] = i;
-
-    Insercao<double>(arr, arr_index, 0, number_of_files - 1, 0);
+    Insercao<double>(similarity_arr, document_index, 0, number_of_files - 1, 0);
 
     std::ofstream ranking_file(output_name);
     erroAssert(ranking_file.is_open(), "Erro: Couldn't open the file");
 
     for(int i = 0; i < range; i++) {
-        if(arr[i] == 0) continue;
-        ranking_file << arr_index[i] << " ";
+        if(similarity_arr[i] == 0) continue;
+        //ranking_file << document_index[i] << " ";
+        ranking_file << "( " << document_index[i] << " ,  " << similarity_arr[i] << " )" << "\t"; 
     }
 
     ranking_file << std::endl;

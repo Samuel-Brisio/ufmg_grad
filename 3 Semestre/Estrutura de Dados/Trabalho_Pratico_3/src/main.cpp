@@ -21,7 +21,8 @@
 
 //function prototype
 void parse_args(int &number, char **pametros);
-int open_corpus(std::string folder);
+int count_number_of_files(std::string &path);
+void open_corpus(std::string folder);
 void read_stopwords();
 void read_search_file();
 void to_lowercase(std::string &word);
@@ -66,8 +67,10 @@ int main(int argc, char **argv) {
     // read the search file
     read_search_file();
 
+    number_of_files = count_number_of_files(folder_path);
+    
     // abre os documentos
-    number_of_files = open_corpus(folder_path);
+    open_corpus(folder_path);
 
     long int size = HASHTABLE_SIZE;
     int number_of_letters = ALPHABET_LETTER;
@@ -89,6 +92,11 @@ int main(int argc, char **argv) {
     document_weight = create_matrix<double>(rows, columns);
     initialize_matrix<double>(document_weight, rows, columns);
     document_weight_gen(inverse_index, document_weight, rows, columns);
+
+    std::ofstream output_file(output_name);
+    erroAssert(output_file.is_open(), "Error: Couldn't open the file");
+
+
 
     //find the search weight
     bool **search_weight;
@@ -112,7 +120,6 @@ int main(int argc, char **argv) {
     search_sum_weights_norm(search_sum, document_weight, indexes);
 
     greater_relevance(search_sum);
-
 
     delete_matrix(document_weight, rows, columns);
     delete_matrix(search_weight, rows, columns);
@@ -154,15 +161,30 @@ void use_instruction() {
     exit(1);
 }
 
-int open_corpus(std::string path) {
-    int i = 0;
-
+int count_number_of_files(std::string &path) {
+    int count = 0;
     for (const auto &doc : std::filesystem::directory_iterator(path)) {
+        count++;
+    }
+
+    return count;
+}
+
+void open_corpus(std::string path) {
+
+
+
+    for(int i = 0; i < number_of_files; i++) {
+        
+        std::string file_name = path;
+        file_name.push_back('/');
+        file_name.append(std::to_string(i));
+
         std::ifstream input_file;
-        input_file.open(doc.path());
+        input_file.open(file_name);
         erroAssert(input_file.is_open(), "Erro: nao foi possivel abrir o arquivo");
         
-        std::string file_name = PROCESS_FILE_FOLDER;
+        file_name = PROCESS_FILE_FOLDER;
         file_name.append(std::to_string(i));
 
         std::ofstream only_vocabulary_file;
@@ -189,11 +211,7 @@ int open_corpus(std::string path) {
         
         input_file.close();
         only_vocabulary_file.close();
-        i++;
     }
-
-    return i;
-
 }
 
 void read_stopwords() {
@@ -325,6 +343,7 @@ void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, int
     Cell<Word> *ptr = vocabulary.get_primeiro_elemento();
     
     for(int i = 0; i < rows; i++) {
+
         long int hash = hashtable.get_hash(ptr->item.chave);
         Cell<Pair> *frequency = hashtable.get_first_element(hash);
         Cell<Pair> *aux = frequency;
@@ -338,7 +357,7 @@ void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, int
         }
         
         for(int j = 0; j < columns; j++) {
-            if(frequency == nullptr || frequency->item.id != i) continue;
+            if(frequency == nullptr || frequency->item.id != j) continue;
             matrix[i][j] = frequency->item.frequency * std::log( (double)(number_of_files) / num_of_docs_that_have_the_term);
             frequency = frequency->prox;
         }
@@ -360,7 +379,7 @@ void search_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, int &ro
         Cell<Pair> *frequency = hashtable.get_first_element(hash);
         
         for(int j = 0; j < columns; j++) {
-            if(frequency == nullptr || frequency->item.id != i) continue;
+            if(frequency == nullptr || frequency->item.id != j) continue;
             matrix[i][j] = true;
             frequency = frequency->prox;
         }
@@ -410,7 +429,9 @@ int find_index(std::string word) {
 }
 
 void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[]) {
-    int wd[number_of_files];
+    
+    // create the wd and calculate
+    double wd[number_of_files]{0};
     int rows = vocabulary.get_tamanho();
     int columns = number_of_files;
 
@@ -422,6 +443,11 @@ void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[
 
     for(int i = 0; i < columns; i++) {
         wd[i] = sqrt(wd[i]);
+    }
+
+    // Normalization divide the sum array by wd
+    for(int i = 0; i < columns; i++) {
+        sum[i] = sum[i] / wd[i];
     }
 }
 
@@ -438,7 +464,12 @@ void greater_relevance(double arr[]) {
     std::ofstream ranking_file(output_name);
     erroAssert(ranking_file.is_open(), "Erro: Couldn't open the file");
 
-    for(int i = number_of_files; i > number_of_files - 10; i--) {
-        ranking_file << arr_index[i] << std::endl;
+    for(int i = 0; i < range; i++) {
+        if(arr[i] == 0) continue;
+        ranking_file << arr_index[i] << " ";
     }
+
+    ranking_file << std::endl;
+
+    ranking_file.close();
 }

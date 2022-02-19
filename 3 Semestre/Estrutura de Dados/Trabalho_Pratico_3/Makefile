@@ -33,4 +33,4 @@ $(OBJ_FOLDER)/hash.o: $(HDRS) $(SRCS)
 	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/hash.o $(SRC_FOLDER)/hash.cpp
 
 clean:
-	rm $(BIN_FOLDER)/* $(OBJ_FOLDER)/* 
+	rm $(BIN_FOLDER)/* $(OBJ_FOLDER)/* "Processo/*"

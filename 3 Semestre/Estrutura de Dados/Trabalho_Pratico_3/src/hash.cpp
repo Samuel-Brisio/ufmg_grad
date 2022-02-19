@@ -23,7 +23,7 @@ long int hash::Hash_String::hash_it(std::string &key) {
     int i = 0;
     for(auto c: key) {
         hash += (long long int)( (int(c - 'a' + 1)) * pow(n_letters, i) );
-        if(i > 7) break;
+        if(i > 6) break;
         i++;
     }
 

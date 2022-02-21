@@ -22,13 +22,14 @@
 //function prototype
 void parse_args(int &number, char **pametros);
 int get_number_of_files(std::string path);
-int open_corpus(std::string path, int documet_indexes[]);
+void open_corpus(std::string path, int document_indexes[]);
 int get_document_index(std::string str);
 void read_stopwords();
 void read_search_file();
 void to_lowercase(std::string &word);
 bool is_stopword(std::string &word);
-void remove_special_characters(std::string &word);
+void remove_special_characters(std::string &word, int arr[]);
+void insert_word(std::string &word, std::ostream &os);
 void inverse_index_gen(hash::Hash_String_Pair &hashtable);
 void find_vocabulary();
 void use_instruction();
@@ -94,7 +95,7 @@ int main(int argc, char **argv) {
     //inverse index generator
     inverse_index_gen(inverse_index);
 
-    std::ofstream inverse_file("/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/outros/invert_index");
+    std::ofstream inverse_file("/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/outros/invert_index.txt");
     erroAssert(inverse_file.is_open(), "Error: couldn't open the file");
 
     inverse_index.print_all(inverse_file);
@@ -124,6 +125,8 @@ int main(int argc, char **argv) {
         }
     }
 
+    /*
+
     //find the search weight
     bool **search_weight;
     rows = indexes_list.get_tamanho();
@@ -145,6 +148,8 @@ int main(int argc, char **argv) {
 
     delete_matrix(document_weight, rows, columns);
     delete_matrix(search_weight, rows, columns);
+
+    */
 
     return 0;
 }
@@ -192,7 +197,7 @@ int get_number_of_files(std::string path) {
 }
 
 
-int open_corpus(std::string path, int document_indexes[]) {
+void open_corpus(std::string path, int document_indexes[]) {
 
     int count = 0;
 
@@ -221,23 +226,29 @@ int open_corpus(std::string path, int document_indexes[]) {
             to_lowercase(word);
 
             if(is_stopword(word)) continue;
+
+
+            // if the characters is invalid the value is -1
+            int valid_characters[word.size()];
             
-            remove_special_characters(word);
+            remove_special_characters(word, valid_characters);
 
-            // if the variable word is empty
-            if(word.size() == 0) continue;
+            std::string new_word = "";
 
-            only_vocabulary_file << word << " ";
-            Word elem;
-            elem.chave = word;
-            vocabulary.insert(elem);
+            for(int i = 0; i < word.size(); i++) {
+                if(valid_characters[i] == -1) {
+                    insert_word(new_word, only_vocabulary_file);
+                    new_word.clear();
+                }
+                int index = valid_characters[i];
+                new_word.push_back(word[index]);
+            }
         }
         
         count++;
         input_file.close();
         only_vocabulary_file.close();
     }
-    return count;
 }
 
 int get_document_index(std::string str) {
@@ -285,32 +296,28 @@ bool is_stopword(std::string &word) {
     return false;
 }
 
-void remove_special_characters(std::string &word) {
+void remove_special_characters(std::string &word, int arr[]) {
     int i = 0;
-    int size = 0;
-
-    int index_that_need_to_be_kept[100];
+    int size = word.size();
     
-    for(auto c: word) {
-        if(std::isdigit(c)) {
-            word.assign("");
-            return;
-        }
+
+    for(auto &c: word) {
         if((c >= 'a' && c <= 'z')) {
-            index_that_need_to_be_kept[size] = i;
-            size++;
+            arr[i] = i;
         }
+        else c = arr[i] = -1;
         i++;
     }
+}
 
-    std::string new_word = "";
+void insert_word(std::string &word, std::ostream &os) {
+    // if the variable word is empty or is a letter
+            if(word.size() <= 1) return;
 
-    for(int j = 0; j < size; j++) {
-        int index = index_that_need_to_be_kept[j];
-        new_word.push_back(word[index]);
-    }
-
-    word.assign(new_word);
+            os << word << " ";
+            Word elem;
+            elem.chave = word;
+            vocabulary.insert(elem);
 }
 
 void inverse_index_gen(hash::Hash_String_Pair &hashtable) {

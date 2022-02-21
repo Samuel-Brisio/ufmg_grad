@@ -94,6 +94,11 @@ int main(int argc, char **argv) {
     //inverse index generator
     inverse_index_gen(inverse_index);
 
+    std::ofstream inverse_file("/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/outros/invert_index");
+    erroAssert(inverse_file.is_open(), "Error: couldn't open the file");
+
+    inverse_index.print_all(inverse_file);
+
     //find -the document weight
     int rows = vocabulary.get_tamanho();
     int columns = number_of_files;
@@ -370,6 +375,7 @@ void delete_matrix(T **matrix, int &rows, int &columns) {
 
     matrix = nullptr;
 }
+
 /*
 loop over vocabulary, for each word find its hash
 then get the first element of the invert index list with that hash
@@ -470,7 +476,7 @@ void list_to_array(int indexes[], Unic_List<int> &indexes_list) {
     int count = 0;
 
     while(ptr != nullptr) {
-        indexes[0] = ptr->item;
+        indexes[count] = ptr->item;
         ptr = ptr->prox;
         count++;
     }

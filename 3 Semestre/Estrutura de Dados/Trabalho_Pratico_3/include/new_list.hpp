@@ -10,7 +10,9 @@ struct Cell {
     T item;
     Cell *prox;
 
-    Cell(): item(), prox(nullptr) {}
+    Cell(): item() {
+        prox = nullptr;
+    }
 };
 
 // U é um Item que está contido dentro da célula
@@ -122,6 +124,7 @@ void Lista<U>::inseri_no_fim(U &elem)
     //cria uma nova celula
     Cell<U> *nova_celula = new(Cell<U>);
     nova_celula->item = elem;
+    nova_celula->prox = nullptr;
 
     //Insere o elemento no final da lista
     fim->prox = nova_celula;
@@ -150,7 +153,7 @@ U Lista<U>::remove_no_inicio()
     if(inicio->prox == nullptr) fim = inicio;
 
     item = aux_ptr->item;
-    delete(aux_ptr);
+    delete aux_ptr;
 
     return item;
 

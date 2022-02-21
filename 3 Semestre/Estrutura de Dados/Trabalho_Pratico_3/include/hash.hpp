@@ -6,21 +6,25 @@
 #include "celula.hpp"
 #include "cmath"
 
+
 namespace hash {
+
+    using ull_int = unsigned long long int;
+    using ul_int = unsigned long int; 
 
     class Hash_String {
         public:
-            Hash_String(long int &size, int &number_of_letters);
+            Hash_String(ul_int &size, int &number_of_letters);
             ~Hash_String();
 
-            long int hash_it(std::string &key);
-            virtual long int get_hash(std::string &key); // remover implementação utiliza hashtable
-            void remove(long int &hash);
+            ul_int hash_it(std::string &key);
+            virtual ul_int get_hash(std::string &key); // remover implementação utiliza hashtable
+            void remove(ul_int &hash);
         
         protected:
             bool *occupied;
             bool *has_value;
-            long int table_size;
+            ul_int table_size;
             int n_letters;
     };
 
@@ -32,16 +36,17 @@ namespace hash {
 
     class Hash_String_Pair: Hash_String {
         public:
-            Hash_String_Pair(long int &size, int &number_of_letters);
+            Hash_String_Pair(ul_int &size, int &number_of_letters);
             ~Hash_String_Pair();
 
-            long int get_hash(std::string &key);
-            Cell<Pair>* get_first_element(long int &hash);
+            ul_int get_hash(std::string &key);
+            Cell<Pair>* get_first_element(ul_int &hash);
+            int get_hash_size(ul_int hash);
 
             void initialize(Lista<Word> &list);
-            void insert(long int &hash, Pair &item);
+            void insert(ul_int &hash, Pair &item);
             void insert(std::string &key, Pair &item);
-            void increment(long int &hash, int &id);
+            void increment(ul_int &hash, int &id);
             void print_all(std::ostream &os);
 
         private:
@@ -60,14 +65,14 @@ namespace hash {
 
     class Hash_String_Int: Hash_String {
         public:
-            Hash_String_Int(long int &size, int &number_of_letters);
+            Hash_String_Int(ul_int &size, int &number_of_letters);
             ~Hash_String_Int();
 
-            long int get_hash(std::string &key);
+            ul_int get_hash(std::string &key);
 
             void initialize(Lista<Word> &list);
             void increment(std::string &key);
-            void insert(long int &hash, int &item);
+            void insert(ul_int &hash, int &item);
             void insert(std::string &key, int &item);
 
         private:

@@ -8,7 +8,7 @@ hash::Cell_Int::Cell_Int(): key(), value(0) {}
 
 // Hash_String
 
-hash::Hash_String::Hash_String(long int &size, int &number_of_letters): table_size(size), n_letters(number_of_letters) {
+hash::Hash_String::Hash_String(hash::ul_int &size, int &number_of_letters): table_size(size), n_letters(number_of_letters) {
     this->occupied = new bool[size]{0};
     this->has_value = new bool[size]{0};
 }
@@ -17,12 +17,12 @@ hash::Hash_String::~Hash_String() {
     delete[] occupied;
 }
 
-long int hash::Hash_String::hash_it(std::string &key) {
-    long long int hash = 0;
+hash::ul_int hash::Hash_String::hash_it(std::string &key) {
+    hash::ull_int hash = 0;
 
     int i = 0;
     for(auto c: key) {
-        hash += (long long int)( (int(c - 'a' + 1)) * pow(n_letters, i) );
+        hash += (hash::ull_int)( (int(c - 'a' + 1)) * pow(n_letters, i) );
         if(i > 6) break;
         i++;
     }
@@ -30,10 +30,10 @@ long int hash::Hash_String::hash_it(std::string &key) {
     return hash % table_size;
 }
 
-long int hash::Hash_String::get_hash(std::string &key) {
+hash::ul_int hash::Hash_String::get_hash(std::string &key) {
 
     erroAssert(false, "This method get_hash need to be specified by inheritance");
-    return -1;
+    return 0;
 }
 
 
@@ -42,7 +42,7 @@ long int hash::Hash_String::get_hash(std::string &key) {
 
 // Hash_String_Pair
 
-hash::Hash_String_Pair::Hash_String_Pair(long int &size, int &number_of_letters)
+hash::Hash_String_Pair::Hash_String_Pair(hash::ul_int &size, int &number_of_letters)
     : Hash_String(size, number_of_letters) 
     {
         hashtable = new Cell_Pair[size];
@@ -52,9 +52,9 @@ hash::Hash_String_Pair::~Hash_String_Pair() {
     delete[] hashtable;
 }
 
-long int hash::Hash_String_Pair::get_hash(std::string &key) {
+hash::ul_int hash::Hash_String_Pair::get_hash(std::string &key) {
     
-    long int hash = hash_it(key);
+    hash::ul_int hash = hash_it(key);
 
      while(occupied[hash]) {
         
@@ -64,11 +64,15 @@ long int hash::Hash_String_Pair::get_hash(std::string &key) {
     }
 
     avisoAssert(false, "Chave ainda não foi incluida no hash table");
-    return -1;
+    return 0;
 }
 
-Cell<Pair>* hash::Hash_String_Pair::get_first_element(long int &hash) {
+Cell<Pair>* hash::Hash_String_Pair::get_first_element(hash::ul_int &hash) {
     return hashtable[hash].value.get_primeiro_elemento();
+}
+
+int hash::Hash_String_Pair::get_hash_size(hash::ul_int hash) {
+    return hashtable[hash].value.get_tamanho();
 }
 
 void hash::Hash_String_Pair::initialize(Lista<Word> &list) {
@@ -90,7 +94,7 @@ void hash::Hash_String_Pair::initialize(Lista<Word> &list) {
     }
 }
 
-void hash::Hash_String_Pair::insert(long int &hash, Pair &item) {
+void hash::Hash_String_Pair::insert(hash::ul_int &hash, Pair &item) {
 
    hashtable[hash].value.inseri_no_fim(item);
    occupied[hash] = true;
@@ -118,7 +122,7 @@ void hash::Hash_String_Pair::insert(std::string &key, Pair &item) {
     has_value[hash] = true;
 }
 
-void hash::Hash_String_Pair::increment(long int &hash, int &id) {
+void hash::Hash_String_Pair::increment(hash::ul_int &hash, int &id) {
     Cell<Pair>* ptr = hashtable[hash].value.get_primeiro_elemento();
 
     //search for the element with the id
@@ -153,7 +157,7 @@ void hash::Hash_String_Pair::print_all(std::ostream &os = std::cout) {
 
 //Hash_String_Int
 
-hash::Hash_String_Int::Hash_String_Int(long int &size, int &number_of_letters)
+hash::Hash_String_Int::Hash_String_Int(hash::ul_int &size, int &number_of_letters)
     : Hash_String(size, number_of_letters) 
     {
         hashtable = new Cell_Int[size];
@@ -163,9 +167,9 @@ hash::Hash_String_Int::~Hash_String_Int() {
     delete[] hashtable;
 }
 
-long int hash::Hash_String_Int::get_hash(std::string &key) {
+hash::ul_int hash::Hash_String_Int::get_hash(std::string &key) {
     
-    long int hash = hash_it(key);
+    hash::ul_int hash = hash_it(key);
 
      while(occupied[hash]) {
         
@@ -203,7 +207,7 @@ void hash::Hash_String_Int::increment(std::string &key) {
     hashtable[hash].value++;
 }
 
-void hash::Hash_String_Int::insert(long int &hash, int &number) {
+void hash::Hash_String_Int::insert(hash::ul_int &hash, int &number) {
 
    hashtable[hash].value = (number);
 }

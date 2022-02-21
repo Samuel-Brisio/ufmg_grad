@@ -15,6 +15,7 @@ hash::Hash_String::Hash_String(hash::ul_int &size, int &number_of_letters): tabl
 
 hash::Hash_String::~Hash_String() {
     delete[] occupied;
+    delete[] has_value;
 }
 
 hash::ul_int hash::Hash_String::hash_it(std::string &key) {
@@ -36,6 +37,9 @@ hash::ul_int hash::Hash_String::get_hash(std::string &key) {
     return 0;
 }
 
+void hash::Hash_String::remove(ul_int &hash) {
+    erroAssert(false, "This method get_hash need to be specified by inheritance");
+}
 
 
 //*******************************************************************************************************************************************************

@@ -16,9 +16,7 @@ class Unic_List : public Lista<T> {
 };
 
 template <typename T>
-Unic_List<T>::Unic_List(): Lista<T>() {
-    std::cout << "chora" << std::endl;
-}
+Unic_List<T>::Unic_List(): Lista<T>() {}
 
 
 template <typename T>

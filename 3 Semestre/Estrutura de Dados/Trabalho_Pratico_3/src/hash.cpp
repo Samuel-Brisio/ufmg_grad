@@ -98,6 +98,7 @@ void hash::Hash_String_Pair::initialize(Lista<Word> &list) {
     }
 }
 
+// Insert a element in the list
 void hash::Hash_String_Pair::insert(hash::ul_int &hash, Pair &item) {
 
    hashtable[hash].value.inseri_no_fim(item);
@@ -139,9 +140,8 @@ void hash::Hash_String_Pair::increment(hash::ul_int &hash, int &id) {
     if(ptr == nullptr) {
         Pair aux(id, 0);
         insert(hash, aux);
+        ptr = hashtable[hash].value.get_ultimo_elemento();
     }
-
-    ptr = hashtable[hash].value.get_ultimo_elemento();
 
     ptr->item.frequency++;
 }

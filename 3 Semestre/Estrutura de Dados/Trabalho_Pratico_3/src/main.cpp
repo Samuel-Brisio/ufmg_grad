@@ -125,8 +125,6 @@ int main(int argc, char **argv) {
         }
     }
 
-    /*
-
     //find the search weight
     bool **search_weight;
     rows = indexes_list.get_tamanho();
@@ -148,8 +146,6 @@ int main(int argc, char **argv) {
 
     delete_matrix(document_weight, rows, columns);
     delete_matrix(search_weight, rows, columns);
-
-    */
 
     return 0;
 }
@@ -540,10 +536,6 @@ void greater_relevance(double similarity_arr[], int document_index[]) {
     std::ofstream ranking_file(output_name);
     erroAssert(ranking_file.is_open(), "Erro: Couldn't open the file");
 
-    for(int i = 0; i < number_of_files; i++) {
-        ranking_file << "( " << document_index[i] << " ,  " << similarity_arr[i] << " ,  " << i << " )" << "\t"; 
-    }
-
     ranking_file << std::endl;
 
     Insercao<double>(similarity_arr, document_index, 0, number_of_files - 1, 0);
@@ -551,7 +543,7 @@ void greater_relevance(double similarity_arr[], int document_index[]) {
     for(int i = 0; i < range; i++) {
         if(similarity_arr[i] == 0) continue;
         //ranking_file << document_index[i] << " ";
-        ranking_file << "( " << document_index[i] << " ,  " << similarity_arr[i] << " )" << "\t"; 
+        ranking_file << document_index[i] << " "; 
     }
     ranking_file << std::endl;
 

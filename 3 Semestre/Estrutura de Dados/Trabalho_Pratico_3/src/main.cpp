@@ -239,10 +239,12 @@ void open_corpus(std::string path, int document_indexes[]) {
                 if(valid_characters[i] == -1) {
                     insert_word(new_word, only_vocabulary_file);
                     new_word.clear();
+                    continue;
                 }
-                int index = valid_characters[i];
-                new_word.push_back(word[index]);
+                new_word.push_back(word[i]);
             }
+
+            insert_word(new_word, only_vocabulary_file);
         }
         
         count++;

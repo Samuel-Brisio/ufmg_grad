@@ -40,10 +40,10 @@ void initialize_matrix(T **matrix, unsigned int &rows, unsigned int &columns);
 template <typename T>
 void delete_matrix(T **matrix, unsigned int &rows, unsigned int &columns);
 unsigned int number_of_elements_that_is_non_zero(hash::Hash_String_Pair &hashtable);
-void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, unsigned int &rows, unsigned int &columns);
+void document_weight_gen(hash::Hash_String_Pair &hashtable, int **matrix_indexes, double *sparce_matrix, unsigned int &rows, unsigned int &columns);
 void search_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, unsigned int &rows, unsigned int &columns);
-void search_sum_weights(double sum_matrix[], bool **search_matrix, double **weight_matrix, int indexes[]);
-void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[]);
+void search_sum_weights(double sum_matrix[], bool **search_matrix, int** matrix_indexes, double *weight_matrix, int indexes[]);
+void search_sum_weights_norm(double sum[], int **matrix_indexes, double *weight_matrix, int indexes[], unsigned int &matrix_size);
 void find_indexes(Unic_List<int> &indexes_list);
 void find_index(std::string word, Unic_List<int> &indexes_list);
 void list_to_array(int indexes[], Unic_List<int> &indexes_list);
@@ -102,16 +102,24 @@ int main(int argc, char **argv) {
 
     //find -the document weight
     unsigned int document_size = number_of_elements_that_is_non_zero(inverse_index);
-    unsigned int i_j_value = 3;
-    unsigned int rows = i_j_value;
+    unsigned int i_j_indexes = 2;
+    unsigned int rows = i_j_indexes;
     unsigned int columns = document_size;
-    double **sparce_matrix =  nullptr;
+    double *sparce_matrix =  nullptr;
+    int **indexes_of_sparce_matrix = nullptr;
 
+    //create array
+    sparce_matrix = new double[document_size];
 
-    sparce_matrix = create_matrix<double>(rows, columns);
+    //inicialized array
+    for(int i = 0; i < document_size; i++) {
+        sparce_matrix[i] = 0;
+    }
 
-    initialize_matrix<double>(sparce_matrix, rows, columns);
-    document_weight_gen(inverse_index, sparce_matrix, rows, columns);
+    indexes_of_sparce_matrix = create_matrix<int>(rows, columns);
+    initialize_matrix<int>(indexes_of_sparce_matrix, rows, columns);
+
+    document_weight_gen(inverse_index, indexes_of_sparce_matrix, sparce_matrix, rows, columns);
 
     //find the indexes of search_words in document_weight
     Unic_List<int> indexes_list;
@@ -136,14 +144,15 @@ int main(int argc, char **argv) {
     double search_sum[number_of_files]{0};
 
     //sum of the weights 
-    search_sum_weights(search_sum, search_weight, sparce_matrix, indexes);
+    search_sum_weights(search_sum, search_weight, indexes_of_sparce_matrix, sparce_matrix, indexes);
 
-    search_sum_weights_norm(search_sum, sparce_matrix, indexes);
+    search_sum_weights_norm(search_sum, indexes_of_sparce_matrix, sparce_matrix, indexes, document_size);
 
     greater_relevance(search_sum, document_indexes);
 
-    delete_matrix<double>(sparce_matrix, i_j_value, document_size);
+    delete_matrix<int>(indexes_of_sparce_matrix, i_j_indexes, document_size);
     delete_matrix<bool>(search_weight, rows, columns);
+    delete[] sparce_matrix;
 
     return 0;
 }
@@ -385,7 +394,7 @@ then get the first element of the invert index list with that hash
 and find the number of documents that this word appears
 calculate the weight of the term frequency in the document
 */
-void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, unsigned int &rows, unsigned int &columns) {
+void document_weight_gen(hash::Hash_String_Pair &hashtable, int **matrix_indexes, double *sparce_matrix, unsigned int &rows, unsigned int &columns) {
     Cell<Word> *ptr = vocabulary.get_primeiro_elemento();
     unsigned int k = 0;
     rows = vocabulary.get_tamanho();
@@ -405,9 +414,9 @@ void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, uns
 
             double weight = frequency->item.frequency * std::log( (double)(number_of_files) / num_of_docs_that_have_the_term);
 
-            matrix[0][k] = i;
-            matrix[1][k] = j;
-            matrix[2][k] = weight;
+            matrix_indexes[0][k] = i;
+            matrix_indexes[1][k] = j;
+            sparce_matrix[k] = weight;
             k++;
 
             frequency = frequency->prox;
@@ -483,7 +492,7 @@ void list_to_array(int indexes[], Unic_List<int> &indexes_list) {
     erroAssert(count <= indexes_list.get_tamanho(), "Error: count is bigger than indexes_list size");
 }
 
-void search_sum_weights(double sum_matrix[], bool **search_matrix, double **weight_matrix, int indexes[]) {
+void search_sum_weights(double sum_matrix[], bool **search_matrix, int** matrix_indexes, double *weight_matrix, int indexes[]) {
     int rows = search_words.get_tamanho();
     int columns = number_of_files;
 
@@ -494,13 +503,13 @@ void search_sum_weights(double sum_matrix[], bool **search_matrix, double **weig
         int index = indexes[i];
 
         //if the word index is not the same
-        while(weight_matrix[0][k] < index) {
+        while(matrix_indexes[0][k] < index) {
             k++;
         }
 
         for(int j = 0; j < columns; j++) {
-            if(weight_matrix[1][k] == j) {
-                sum_matrix[j] += search_matrix[i][j] ? weight_matrix[2][k] : 0; 
+            if(matrix_indexes[1][k] == j) {
+                sum_matrix[j] += search_matrix[i][j] ? weight_matrix[k] : 0; 
                 k++;
             }
         }
@@ -508,7 +517,7 @@ void search_sum_weights(double sum_matrix[], bool **search_matrix, double **weig
 
 }
 
-void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[]) {
+void search_sum_weights_norm(double sum[], int **matrix_indexes, double *weight_matrix, int indexes[], unsigned int &matrix_size) {
     
     // create the wd and calculate
     double wd[number_of_files]{0};
@@ -516,10 +525,8 @@ void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[
     int columns = number_of_files;
 
     // for each documest, square weight sum
-    for(int i = 0; i < columns; i++) {
-        for(int j = 0;  j < rows; j++) {
-            wd[i] += pow(weight_matrix[j][i], 2);
-        }
+    for(int k = 0; k < matrix_size; k++) {
+        wd[matrix_indexes[1][k]] += pow(weight_matrix[k], 2);  
     }
 
     // square root of the sum

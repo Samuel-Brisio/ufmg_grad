@@ -34,14 +34,14 @@ void inverse_index_gen(hash::Hash_String_Pair &hashtable);
 void find_vocabulary();
 void use_instruction();
 template <typename T>
-T** create_matrix(int &rows, int &columns);
+T** create_matrix(unsigned int &rows, unsigned int &columns);
 template <typename T>
-void initialize_matrix(T **matrix, int &rows, int &columns);
+void initialize_matrix(T **matrix, unsigned int &rows, unsigned int &columns);
 template <typename T>
-void delete_matrix(T **matrix, int &rows, int &columns);
-void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, int &rows, int &columns);
-void search_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, int &rows, int &columns);
-void search_sum_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, int &rows, int &columns);
+void delete_matrix(T **matrix, unsigned int &rows, unsigned int &columns);
+unsigned int number_of_elements_that_is_non_zero(hash::Hash_String_Pair &hashtable);
+void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, unsigned int &rows, unsigned int &columns);
+void search_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, unsigned int &rows, unsigned int &columns);
 void search_sum_weights(double sum_matrix[], bool **search_matrix, double **weight_matrix, int indexes[]);
 void search_sum_weights_norm(double sum[], double ** weight_matrix, int indexes[]);
 void find_indexes(Unic_List<int> &indexes_list);
@@ -101,13 +101,17 @@ int main(int argc, char **argv) {
     inverse_index.print_all(inverse_file);
 
     //find -the document weight
-    int rows = vocabulary.get_tamanho();
-    int columns = number_of_files;
-    double **document_weight = nullptr;
+    unsigned int document_size = number_of_elements_that_is_non_zero(inverse_index);
+    unsigned int i_j_value = 3;
+    unsigned int rows = i_j_value;
+    unsigned int columns = document_size;
+    double **sparce_matrix =  nullptr;
 
-    document_weight = create_matrix<double>(rows, columns);
-    initialize_matrix<double>(document_weight, rows, columns);
-    document_weight_gen(inverse_index, document_weight, rows, columns);
+
+    sparce_matrix = create_matrix<double>(rows, columns);
+
+    initialize_matrix<double>(sparce_matrix, rows, columns);
+    document_weight_gen(inverse_index, sparce_matrix, rows, columns);
 
     //find the indexes of search_words in document_weight
     Unic_List<int> indexes_list;
@@ -118,12 +122,6 @@ int main(int argc, char **argv) {
     // copy the data from indexes_list to indexes
     list_to_array(indexes, indexes_list);
 
-    int arr[] = {121, 149, 166, 112};
-    for(int i: indexes) {
-        for(int j: arr) {
-            std::cout << i << " , " << j << ": " << document_weight[i][j] << std::endl;
-        }
-    }
 
     //find the search weight
     bool **search_weight;
@@ -138,14 +136,14 @@ int main(int argc, char **argv) {
     double search_sum[number_of_files]{0};
 
     //sum of the weights 
-    search_sum_weights(search_sum, search_weight, document_weight, indexes);
+    search_sum_weights(search_sum, search_weight, sparce_matrix, indexes);
 
-    search_sum_weights_norm(search_sum, document_weight, indexes);
+    search_sum_weights_norm(search_sum, sparce_matrix, indexes);
 
     greater_relevance(search_sum, document_indexes);
 
-    delete_matrix(document_weight, rows, columns);
-    delete_matrix(search_weight, rows, columns);
+    delete_matrix<double>(sparce_matrix, i_j_value, document_size);
+    delete_matrix<bool>(search_weight, rows, columns);
 
     return 0;
 }
@@ -346,7 +344,7 @@ void inverse_index_gen(hash::Hash_String_Pair &hashtable) {
 }
 
 template <typename T>
-T** create_matrix(int &rows, int &columns) {
+T** create_matrix(unsigned int &rows, unsigned int &columns) {
     T **matrix = new T*[rows];
 
     for(int i = 0; i < rows; i++) {
@@ -358,7 +356,7 @@ T** create_matrix(int &rows, int &columns) {
 }
 
 template <typename T>
-void initialize_matrix(T **matrix, int &rows, int &columns) {
+void initialize_matrix(T **matrix, unsigned int &rows, unsigned int &columns) {
     std::ofstream debug("/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/outros/debug.txt");
     erroAssert(debug.is_open(), "Erro");
 
@@ -371,7 +369,7 @@ void initialize_matrix(T **matrix, int &rows, int &columns) {
 }
 
 template <typename T>
-void delete_matrix(T **matrix, int &rows, int &columns) {
+void delete_matrix(T **matrix, unsigned int &rows, unsigned int &columns) {
     for(int i = 0; i < rows; i++) {
         delete[] matrix[i];
     }
@@ -387,9 +385,11 @@ then get the first element of the invert index list with that hash
 and find the number of documents that this word appears
 calculate the weight of the term frequency in the document
 */
-void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, int &rows, int &columns) {
+void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, unsigned int &rows, unsigned int &columns) {
     Cell<Word> *ptr = vocabulary.get_primeiro_elemento();
-    
+    unsigned int k = 0;
+    rows = vocabulary.get_tamanho();
+
     for(int i = 0; i < rows; i++) {
 
         unsigned long int hash = hashtable.get_hash(ptr->item.chave);
@@ -398,29 +398,23 @@ void document_weight_gen(hash::Hash_String_Pair &hashtable, double **matrix, int
         Cell<Pair> *frequency = hashtable.get_first_element(hash);
 
         int num_of_docs_that_have_the_term = hashtable.get_hash_size(hash);
-        
-        int arr[] = {121, 149, 166, 112};
-        
+                
         for(int j = 0; j < columns; j++) {
             if(frequency == nullptr) break;
             if(frequency->item.id != j) continue;
-            
-            bool is_search_word = i == 395 || i == 336;
-            bool is_document = false;
 
-            for(int e: arr) is_document = e == j ? true : is_document;
+            double weight = frequency->item.frequency * std::log( (double)(number_of_files) / num_of_docs_that_have_the_term);
 
-            matrix[i][j] = frequency->item.frequency * std::log( (double)(number_of_files) / num_of_docs_that_have_the_term);
-
-            // apagar
-            if(is_search_word && is_document) std::cout << i << " , " << j << ": " << matrix[i][j] << ", frequency :" << frequency->item.frequency << std::endl;
-            // apagar
+            matrix[0][k] = i;
+            matrix[1][k] = j;
+            matrix[2][k] = weight;
+            k++;
 
             frequency = frequency->prox;
+
         }
         ptr = ptr->prox;
     }
-    std::cout << "------------------------------------------------------------------" << std::endl;
 }
 
 /*
@@ -428,7 +422,7 @@ loop over search_words list, for each word find its hash
 then get the first element of the invert index list
 loop over the elements of this hash
 */
-void search_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, int &rows, int &columns) {
+void search_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, unsigned int &rows, unsigned int &columns) {
     Cell<Word> *ptr = search_words.get_primeiro_elemento();
     
     for(int i = 0; i < rows; i++) {
@@ -492,13 +486,23 @@ void list_to_array(int indexes[], Unic_List<int> &indexes_list) {
 void search_sum_weights(double sum_matrix[], bool **search_matrix, double **weight_matrix, int indexes[]) {
     int rows = search_words.get_tamanho();
     int columns = number_of_files;
+
+    unsigned int k = 0;
     
     for(int i = 0; i < rows; i++) {        
-        //indexes -> have the search_words indexes on the matrix 
+        //indexes -> have the search_words indexes on the weight matrix 
         int index = indexes[i];
 
+        //if the word index is not the same
+        while(weight_matrix[0][k] < index) {
+            k++;
+        }
+
         for(int j = 0; j < columns; j++) {
-            sum_matrix[j] += search_matrix[i][j] ? weight_matrix[index][j] : 0; 
+            if(weight_matrix[1][k] == j) {
+                sum_matrix[j] += search_matrix[i][j] ? weight_matrix[2][k] : 0; 
+                k++;
+            }
         }
     }
 
@@ -536,8 +540,6 @@ void greater_relevance(double similarity_arr[], int document_index[]) {
     std::ofstream ranking_file(output_name);
     erroAssert(ranking_file.is_open(), "Erro: Couldn't open the file");
 
-    ranking_file << std::endl;
-
     Insercao<double>(similarity_arr, document_index, 0, number_of_files - 1, 0);
 
     for(int i = 0; i < range; i++) {
@@ -548,4 +550,21 @@ void greater_relevance(double similarity_arr[], int document_index[]) {
     ranking_file << std::endl;
 
     ranking_file.close();
+}
+
+unsigned int number_of_elements_that_is_non_zero(hash::Hash_String_Pair &hashtable) {
+    Cell<Word> *ptr = vocabulary.get_primeiro_elemento();
+    unsigned int sum = 0;
+    
+    for(int i = 0; i < vocabulary.get_tamanho(); i++) {
+
+        unsigned long int hash = hashtable.get_hash(ptr->item.chave);
+        erroAssert(hash > 0, "Error: invalid hash");
+
+        sum += hashtable.get_hash_size(hash);
+        
+        ptr = ptr->prox;
+    }
+
+    return sum;
 }

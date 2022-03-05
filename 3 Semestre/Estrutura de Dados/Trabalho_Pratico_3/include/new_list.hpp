@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "msgassert.h"
-#include "celula.hpp"
+#include "structs.hpp"
 
 template <typename T>
 struct Cell {

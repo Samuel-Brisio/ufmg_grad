@@ -9,7 +9,7 @@ CXXFLAGS = -Wall -c -I$(INC_FOLDER)
 
 #especificar qual versão do compilador utilizar
 
-OBJS = $(OBJ_FOLDER)/main.o $(OBJ_FOLDER)/memlog.o $(OBJ_FOLDER)/celula.o $(OBJ_FOLDER)/hash.o
+OBJS = $(OBJ_FOLDER)/main.o $(OBJ_FOLDER)/memlog.o $(OBJ_FOLDER)/structs.o $(OBJ_FOLDER)/hash.o
 HDRS = $(wildcard $(INC_FOLDER)/*.h) $(wildcard $(INC_FOLDER)/*.hpp)
 SRCS = $(wildcard $(SRC_FOLDER)/*.cpp) $(wildcard $(SRC_FOLDER)/*.c)
 
@@ -26,8 +26,8 @@ $(OBJ_FOLDER)/main.o: $(HDRS) $(SRCS)
 $(OBJ_FOLDER)/memlog.o: $(HDRS) $(SRCS)
 	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/memlog.o $(SRC_FOLDER)/memlog.c
 
-$(OBJ_FOLDER)/celula.o: $(HDRS) $(SRCS)
-	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/celula.o $(SRC_FOLDER)/celula.cpp
+$(OBJ_FOLDER)/structs.o: $(HDRS) $(SRCS)
+	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/structs.o $(SRC_FOLDER)/structs.cpp
 
 $(OBJ_FOLDER)/hash.o: $(HDRS) $(SRCS)
 	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/hash.o $(SRC_FOLDER)/hash.cpp

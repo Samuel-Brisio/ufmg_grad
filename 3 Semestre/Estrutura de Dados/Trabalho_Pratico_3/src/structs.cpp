@@ -1,4 +1,4 @@
-#include "celula.hpp"
+#include "structs.hpp"
 
 
 Word::Word() : chave() {}

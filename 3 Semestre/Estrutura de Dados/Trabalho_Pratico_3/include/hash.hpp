@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include "new_list.hpp"
-#include "celula.hpp"
+#include "structs.hpp"
 #include "cmath"
 
 

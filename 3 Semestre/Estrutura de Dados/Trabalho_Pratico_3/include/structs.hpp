@@ -3,7 +3,7 @@
 
 #include <iostream>
 #include <string>
-#include "celula.hpp"
+#include "structs.hpp"
 
 // structs utlizadas para o armazenamento das stopwords e do vocabulario
 

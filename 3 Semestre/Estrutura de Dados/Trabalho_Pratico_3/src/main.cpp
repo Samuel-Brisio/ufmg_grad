@@ -10,28 +10,28 @@
 #include "insercao.hpp"
 
 //Self implemented data struct
+#include "structs.hpp"
 #include "new_list.hpp"
 #include "unic_list.hpp"
 #include "hash.hpp"
 
 
-#define PROCESS_FILE_FOLDER "/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/Processo/"
+#define PROCESS_FILE_FOLDER  "" // exemplo Processo/  -> dont forget the / at the end
 #define ALPHABET_LETTER 26
 #define HASHTABLE_SIZE 12400001
 
 //function prototype
 void parse_args(int &number, char **pametros);
 int get_number_of_files(std::string path);
-void open_corpus(std::string path, int document_indexes[]);
-int get_document_index(std::string str);
 void read_stopwords();
 void read_search_file();
+int get_document_index(std::string str);
 void to_lowercase(std::string &word);
 bool is_stopword(std::string &word);
+void open_corpus(std::string path, int document_indexes[]);
 void remove_special_characters(std::string &word, int arr[]);
 void insert_word(std::string &word, std::ostream &os);
 void inverse_index_gen(hash::Hash_String_Pair &hashtable);
-void find_vocabulary();
 void use_instruction();
 template <typename T>
 T** create_matrix(unsigned int &rows, unsigned int &columns);
@@ -192,6 +192,7 @@ void use_instruction() {
 }
 
 int get_number_of_files(std::string path) {
+    
     int count = 0;
 
     for(const auto &doc : std::filesystem::directory_iterator(path)) count++;
@@ -366,13 +367,9 @@ T** create_matrix(unsigned int &rows, unsigned int &columns) {
 
 template <typename T>
 void initialize_matrix(T **matrix, unsigned int &rows, unsigned int &columns) {
-    std::ofstream debug("/home/samuelbrisio/Documents/UFMG/Projetos_github/ufmg_grad/3 Semestre/Estrutura de Dados/Trabalho_Pratico_3/outros/debug.txt");
-    erroAssert(debug.is_open(), "Erro");
-
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < columns; j++) {
             matrix[i][j] = 0;
-            debug << i << " " << j << std::endl;
         }
     }
 }
@@ -452,7 +449,7 @@ void search_weight_gen(hash::Hash_String_Pair &hashtable, bool **matrix, unsigne
     }
 }
 
-// find the word indexes of the search words and words that contain search word
+// find the word indexes of the search words
 void find_indexes(Unic_List<int> &indexes_list) {
     Cell<Word> *ptr = search_words.get_primeiro_elemento();
     int rows = search_words.get_tamanho();
@@ -464,15 +461,15 @@ void find_indexes(Unic_List<int> &indexes_list) {
     }
 }
 
+// find the index of the word in weight_matrix
 void find_index(std::string word, Unic_List<int> &indexes_list) {
     Cell<Word> *ptr = vocabulary.get_primeiro_elemento();
     int count = 0;
 
     while(ptr != nullptr) {
-        if(ptr->item.chave.find(word) != std::string::npos) {
+        if(ptr->item.chave.compare(word) != 0) {
             indexes_list.insert(count);
             search_words.insert(ptr->item);
-            std::cout << ptr->item.chave << std::endl;
         }
         ptr = ptr->prox;
         count++;
@@ -489,7 +486,7 @@ void list_to_array(int indexes[], Unic_List<int> &indexes_list) {
         count++;
     }
 
-    erroAssert(count <= indexes_list.get_tamanho(), "Error: count is bigger than indexes_list size");
+    erroAssert(count == indexes_list.get_tamanho(), "Error: count is bigger than indexes_list size");
 }
 
 void search_sum_weights(double sum_matrix[], bool **search_matrix, int** matrix_indexes, double *weight_matrix, int indexes[]) {

@@ -3,22 +3,25 @@
 
 #include <iostream>
 #include <queue>
+#include <vector>
 
-using s_int = short unsigned int;
+using su_int = short unsigned int;
 
 class BFS {
     public:
-        BFS(size_t position, s_int bicicle);  // mapa, posicao da pessoa, nome da bicicleta
-        size_t bfs_execution();
+        BFS(char** map, su_int M, su_int N, std::pair<su_int, su_int> position, su_int bicicle);  // mapa, posicao da pessoa, nome da bicicleta
+        su_int bfs_execution();
+
+        void explore(std::vector<su_int> pos);
 
     private:
-        std::queue < std::pair <size_t, size_t> > cells;
+        std::queue < std::vector <su_int> > cells;
         char **map;
         bool **explored_map;
-        size_t M;
-        size_t N;
-        size_t position;
-        s_int bike;
+        su_int M;
+        su_int N;
+        std::pair<su_int, su_int> position;
+        su_int bike;
 
 
 };

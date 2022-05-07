@@ -25,14 +25,14 @@ int main() {
     // read the people' preference list
     for ( int i = 0; i < n; i++ ) {
         for ( int j = 0; j < n; j++) {
-            std::cin >> peoplePreferece[j][i];
+            std::cin >> peoplePreferece[i][j];
         }
     }
 
     // read the bicicle' preference list 
     for ( int i = 0; i < n; i++ ) {
         for ( int j = 0; j < n; j++) {
-            std::cin >> biciclePreference[j][i];
+            std::cin >> biciclePreference[i][j];
         }
     }
 

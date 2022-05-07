@@ -4,7 +4,7 @@ OBJ_FOLDER = obj
 SRC_FOLDER = src
 
 GXX = g++
-GXXFLAGS = -Wall -c -I$(INCLUDE_FOLDER)/
+GXXFLAGS = -g -Wall -c -I$(INCLUDE_FOLDER)/
 LIBS = -lm
 
 OBJS = $(OBJ_FOLDER)/main.o $(OBJ_FOLDER)/gs.o

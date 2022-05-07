@@ -31,7 +31,8 @@ int GaleShapley::findNextPassiveEntity(char proposeEnt) {
 bool GaleShapley::passivePrefersProposer(char proposeEnt, int passiveEnt) {
     char passiveActualMatch = passiveSideSolution[passiveEnt];
 
-    for(auto e: _passiveSidePreference[passiveEnt]) {
+    // The preference list of the passive entity is on idx passiveEnt - 1
+    for(auto e: _passiveSidePreference[passiveEnt - 1]) {
         if( e == passiveActualMatch) return false;
         if( e == proposeEnt) return true;
     }
@@ -44,8 +45,10 @@ void GaleShapley::gpExecution() {
         char proposeEntity = unmatch.front();
         unmatch.pop();
 
-        if (track.find(proposeEntity) == track.end()) track.insert(std::pair < char, int > (proposeEntity, 0));
-        
+        if (track.find(proposeEntity) == track.end()) {
+            track.insert(std::pair < char, int > (proposeEntity, 0));
+        }
+
         int passiveEntity = findNextPassiveEntity(proposeEntity);
 
         // passive is unmatch
@@ -61,6 +64,8 @@ void GaleShapley::gpExecution() {
             if(willChange) {
                 char oldProposeEntity = passiveSideSolution[passiveEntity];
                 track[oldProposeEntity]++;
+                unmatch.push(oldProposeEntity);
+                proposeSideSolution[oldProposeEntity] = -1;
                 
                 passiveSideSolution[passiveEntity] = proposeEntity;
                 proposeSideSolution.insert_or_assign(proposeEntity, passiveEntity);

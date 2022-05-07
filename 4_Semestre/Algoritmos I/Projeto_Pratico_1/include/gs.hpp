@@ -1,5 +1,5 @@
-#ifndef GPHPP
-#define GPHPP
+#ifndef GSHPP
+#define GSHPP
 
 #include <cassert>
 #include <iostream>
@@ -16,8 +16,8 @@ class GaleShapley {
             std::vector < std::vector < char > > passiveSidePreference
             );
 
-        void gpExecution();
-        void printResult();
+        void gpExecution(); // execute the Gale Shapley algorithm
+        void printResult(); // print the result
 
     private:
         std::vector <char> _proposeSideList;

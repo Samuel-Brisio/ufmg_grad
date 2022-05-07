@@ -1,4 +1,4 @@
-#include "gp.hpp"
+#include "gs.hpp"
 
 GaleShapley::GaleShapley(
     std::vector <char> proposeSideList,
@@ -24,7 +24,7 @@ void GaleShapley::inicializeUnmatchConteiner() {
 int GaleShapley::findNextPassiveEntity(char proposeEnt) {
     int idxPropose = proposeEnt - 'a';
     int idxNextPassive = track[proposeEnt];
-    
+
     return _proposeSidePreference[idxPropose][idxNextPassive]; 
 }
 
@@ -43,7 +43,7 @@ void GaleShapley::gpExecution() {
     while(unmatch.size() != 0) {
         char proposeEntity = unmatch.front();
         unmatch.pop();
-        
+
         if (track.find(proposeEntity) == track.end()) track.insert(std::pair < char, int > (proposeEntity, 0));
         
         int passiveEntity = findNextPassiveEntity(proposeEntity);
@@ -77,6 +77,14 @@ void GaleShapley::gpExecution() {
 }
 
 
-void printResult() {
+void GaleShapley::printResult() {
+    for(auto e: proposeSideSolution) {
+        std::cout << e.first << " -> " << e.second << std::endl;
+    }
 
+    std::cout << std::endl;
+
+    for(auto e: passiveSideSolution) {
+        std::cout << e.first << " -> " << e.second << std::endl;
+    }
 }

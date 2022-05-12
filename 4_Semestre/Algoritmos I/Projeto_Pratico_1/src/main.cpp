@@ -10,8 +10,8 @@
 using us_int = unsigned short int;
 
 void makePeoplePreferenceList(std::vector < std::vector <int> > peoplePreference);
-void makePeopleList(std::vector <char> List, std::set <char>  set);
-void makeBicicleList(std::vector <int> List, std::set <int>  set);
+void makePeopleList(std::vector <char> &List, std::set <char>  set);
+void makeBicicleList(std::vector <int> &List, std::set <int>  set);
 
 int main() {
 
@@ -56,6 +56,18 @@ int main() {
     makePeopleList(peopleListV, peopleList);
     makeBicicleList(bicicleListV, bicicleList);
 
+    for(int i = 0; i < n; i++) {
+        std::cout << bicicleListV[i] << " ";
+    }
+
+    std::cout << std::endl;
+
+    for(int i = 0; i < n; i++) {
+        std::cout << peopleListV[i] << " ";
+    }
+
+    std::cout << std::endl;
+
     // call BFS
 
     for(int i = 0; i < n; i++) {
@@ -75,13 +87,13 @@ int main() {
     return 0;
 }
 
-void makePeopleList(std::vector <char> List, std::set <char>  set){
+void makePeopleList(std::vector <char> &List, std::set <char>  set){
     int size = set.size();
 
     for(auto e: set) List.push_back(e);
 
 }
-void makeBicicleList(std::vector <int> List, std::set <int>  set) {
+void makeBicicleList(std::vector <int> &List, std::set <int>  set) {
     int size = set.size();
 
     for(auto e: set) List.push_back(e);

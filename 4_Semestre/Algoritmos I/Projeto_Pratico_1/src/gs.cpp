@@ -52,8 +52,10 @@ void GaleShapley::gpExecution() {
 
         // passive is unmatch
         if ( passiveSideSolution.find(passiveEntity) == passiveSideSolution.end() ) { 
-            proposeSideSolution.insert_or_assign(proposeEntity, passiveEntity);
-            passiveSideSolution.insert_or_assign(passiveEntity, proposeEntity);
+            //proposeSideSolution.insert_or_assign(proposeEntity, passiveEntity);
+            //passiveSideSolution.insert_or_assign(passiveEntity, proposeEntity);
+            insert_or_assign(proposeSideSolution, proposeEntity, passiveEntity);
+            insert_or_assign(passiveSideSolution, passiveEntity, proposeEntity);
         }
 
         else {
@@ -67,7 +69,8 @@ void GaleShapley::gpExecution() {
                 proposeSideSolution[oldProposeEntity] = -1;
                 
                 passiveSideSolution[passiveEntity] = proposeEntity;
-                proposeSideSolution.insert_or_assign(proposeEntity, passiveEntity);
+                //proposeSideSolution.insert_or_assign(proposeEntity, passiveEntity);
+                insert_or_assign(proposeSideSolution, proposeEntity, passiveEntity);
             }
 
             // passive will not change his patner

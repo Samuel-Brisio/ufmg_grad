@@ -7,6 +7,8 @@
 #include <queue>
 #include <vector>
 
+#include "map_insert_or_assign.hpp"
+
 class GaleShapley {
     public:
         GaleShapley(

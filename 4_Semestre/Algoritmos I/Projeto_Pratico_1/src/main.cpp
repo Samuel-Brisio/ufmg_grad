@@ -58,11 +58,12 @@ int main() {
 
     // call BFS
 
-    for(auto b: bicicleCoordinates) {
-        BFS bfs(pinpolhosMap, b, peopleListV);
+    for(int i = 0; i < n; i++) {
+        BFS bfs(pinpolhosMap, bicicleCoordinates[i], peopleListV);
+        bfs.BFSExecution();
+        char bicicle = pinpolhosMap[bicicleCoordinates[i].first][bicicleCoordinates[i].second];
+        biciclePreference[bicicle] = bfs.sortedSolution();
     }
-
-
 
     // call Gale_Shapley
     GaleShapley gs(peopleListV, bicicleListV, peoplePreference, biciclePreference);

@@ -31,8 +31,7 @@ int GaleShapley::findNextPassiveEntity(char proposeEnt) {
 bool GaleShapley::passivePrefersProposer(char proposeEnt, int passiveEnt) {
     char passiveActualMatch = passiveSideSolution[passiveEnt];
 
-    // The preference list of the passive entity is on idx passiveEnt - 1
-    for(auto e: _passiveSidePreference[passiveEnt - 1]) {
+    for(auto e: _passiveSidePreference[passiveEnt]) {
         if( e == passiveActualMatch) return false;
         if( e == proposeEnt) return true;
     }

@@ -2,26 +2,36 @@
 #define BFSHPP
 
 #include <iostream>
+#include <map>
 #include <queue>
 #include <vector>
 
-using su_int = short unsigned int;
+using us_int = unsigned short int;
 
 class BFS {
     public:
-        BFS(char** map, su_int M, su_int N, std::pair<su_int, su_int> position, su_int bicicle);  // mapa, posicao da pessoa, nome da bicicleta
-        su_int bfs_execution();
+        BFS(
+            std::vector < std::vector <int> > map,
+            std::pair <us_int, us_int> coordinate,
+            std::vector <char> preferenceEntityList
+            );
 
-        void explore(std::vector<su_int> pos);
+        void BFSExecution(); // execute the BFS' algorithm
 
     private:
-        std::queue < std::vector <su_int> > cells;
-        char **map;
-        bool **explored_map;
-        su_int M;
-        su_int N;
-        std::pair<su_int, su_int> position;
-        su_int bike;
+        void createExploredMap(); // auxiliar method that create a mask with the avaliable paths
+        std::queue < std::pair <us_int, us_int> > BFSIteration(std::queue < std::pair <us_int, us_int> > actual);
+        bool isValidCoord(us_int x, us_int y);
+        bool isEntity(us_int x, us_int y);
+
+        std::vector < std::vector <int> > _map;
+        std::pair < us_int, us_int > _coordinate;
+        std::vector < std::vector <bool> > _exploredMap;
+        std::map <char, int> _preferenceList;
+        us_int _dist;
+        us_int _N; // N -> rowns // verificar se as variaveis foram inicializadas corretamente
+        us_int _M; // M -> cols
+
 
 
 };

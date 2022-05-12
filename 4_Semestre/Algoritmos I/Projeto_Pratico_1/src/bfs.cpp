@@ -1,64 +1,80 @@
-#include <iostream>
-
 #include "bfs.hpp"
 
-// BFS class contructor
-BFS::BFS(char** map, su_int N, su_int M, std::pair<su_int, su_int> position, su_int bicicle) {
-    this->map = map; // a pointer to the map
-    this->N = N; // number of lines
-    this->M = M; // number of columns
-    this-> position = position; // person' position
-    this->bike = bicicle; // bicicle tag
+BFS::BFS(
+    std::vector < std::vector <int> > map,
+    std::pair <us_int, us_int> coordinate,
+    std::vector <char> preferenceEntityList
+    )
+{
+   _map = map; 
+   _coordinate = coordinate;
+   _dist = 0;
 
-    explored_map = new bool*[N];
-    for(int i = 0; i < N; i++) {
-        explored_map[i] = new bool [M];
-    }
+   _N = map.size();
+   _M = map[0].size();
+
+   createExploredMap();
 }
 
-// Execute the BFS algorithm
-su_int BFS::bfs_execution() {
-    std::vector <su_int> pos {position.first, position.second, su_int(0)};
-    cells.push(pos);
-    
-    while(map[pos[0]][pos[1]] != bike || cells.size() != 0) {
-        pos = cells.front();
-        cells.pop();
+void BFS::createExploredMap() {
 
-        su_int x = pos[0];
-        su_int y = pos[1];
-
-        if(map[x][y] == bike) {
-            return pos[2];
-        }
-
-        explore(pos);
-    }
-
-    return 0;
-    
 }
 
-// explore the neighbors cells
-void BFS::explore(std::vector <su_int> pos) {
-    std::pair<short int , short int > neighbors[4];
-    neighbors[0] = {1, 0};
-    neighbors[1] = {-1, 0};
-    neighbors[2] = {0, 1};
-    neighbors[3] = {0, -1};
+void BFS::BFSExecution() {
+    std::queue < std::pair <us_int, us_int> > actual;
+    actual.push(_coordinate);
 
-    for(auto n: neighbors) {
-        std::vector <su_int> aux (3);
-        aux[0] = n.first + pos[0];
-        aux[1] = n.second + pos[1];
-        aux[2] = pos[2] + 1;
+    while(actual.size() != 0) {
+        actual = BFSIteration(actual);
+    }
 
-        short int x = aux[0]; 
-        short int y = aux[1];
+}
 
-        // if the neighbor is a available path and is not already explored
-        if (map[x][y] != '-' && explored_map[x][y] == false) {
-            cells.push(pos);
+std::queue < std::pair <us_int, us_int> > BFS::BFSIteration(std::queue < std::pair <us_int, us_int> > actual) {
+    std::queue < std::pair <us_int, us_int> > nextLayer; // next layer of execution of the BFS
+    
+    while(actual.size() != 0) {
+        std::pair < us_int, us_int > coord;
+
+        coord = actual.front();
+        actual.pop();
+
+        isEntity(coord.first, coord.second);
+
+        if(isValidCoord(coord.first + 1, coord.second)) {
+            nextLayer.push(std::pair <us_int, us_int> (coord.first + 1, coord.second));
+        }
+        if(isValidCoord(coord.first - 1, coord.second)) {
+            nextLayer.push(std::pair <us_int, us_int> (coord.first - 1, coord.second));
+        }
+        if(isValidCoord(coord.first, coord.second + 1)) {
+            nextLayer.push(std::pair <us_int, us_int> (coord.first, coord.second + 1));
+        }
+        if(isValidCoord(coord.first, coord.second - 1)) {
+            nextLayer.push(std::pair <us_int, us_int> (coord.first, coord.second - 1));
         }
     }
+
+    _dist++;
+
+    return nextLayer;
+}
+
+bool BFS::isValidCoord(us_int x, us_int y) {
+    char description = _map[x][y];
+
+    if(x < 0 || y < 0 || x >= _N || y >= _M) return false; // if the coordinate is inside the map
+    if(description == '-') return false; // if the coordinate is a valid path
+    if(_exploredMap[x][y]) return false; // if this coordinate is already explored
+    return true;
+}
+
+bool BFS::isEntity(us_int x, us_int y) {
+    char description = _map[x][y];
+
+    if(description >= 'a' && description <= 'z') {
+        _preferenceList.insert_or_assign(description, _dist);
+        return true;
+    }
+    return false;
 }

@@ -11,7 +11,7 @@ using us_int = unsigned short int;
 class BFS {
     public:
         BFS(
-            std::vector < std::vector <int> > map,
+            std::vector < std::vector <char> > map,
             std::pair <us_int, us_int> coordinate,
             std::vector <char> preferenceEntityList
             );

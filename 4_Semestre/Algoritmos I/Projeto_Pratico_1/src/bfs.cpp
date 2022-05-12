@@ -17,7 +17,7 @@ BFS::BFS(
 }
 
 void BFS::createExploredMap() {
-
+    _exploredMap.resize(_M, std::vector <bool> (_N));
 }
 
 void BFS::BFSExecution() {

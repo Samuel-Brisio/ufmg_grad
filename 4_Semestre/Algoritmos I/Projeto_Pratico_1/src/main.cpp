@@ -1,13 +1,17 @@
 // include the libraries
-#include <iostream>
-#include <vector>
 #include <algorithm>
+#include <iostream>
+#include <set>
+#include <vector>
 
+#include "bfs.hpp"
 #include "gs.hpp"
 
+using us_int = unsigned short int;
+
 void makePeoplePreferenceList(std::vector < std::vector <int> > peoplePreference);
-void makePeopleList(std::vector <char> List);
-void makeBicicleList(std::vector <int> List);
+void makePeopleList(std::vector <char> List, std::set <char>  set);
+void makeBicicleList(std::vector <int> List, std::set <int>  set);
 
 int main() {
 
@@ -22,52 +26,64 @@ int main() {
     // create the matrix that will store the map
     std::vector < std::vector < char > > pinpolhosMap (rows, std::vector <char> (cols) );
 
-    std::vector < char > peopleList (n);
-    std::vector < int > bicicleList (n);
+    std::set < char > peopleList;
+    std::set < int > bicicleList;
+
+    std::vector < char > peopleListV;
+    std::vector < int > bicicleListV;
 
     std::vector < std::vector <int> > peoplePreference (n, std::vector <int> (n)); 
     std::vector < std::vector <char> > biciclePreference (n, std::vector <char> (n)); 
 
+    std::vector < std::pair <us_int, us_int> > bicicleCoordinates;
 
+    // read the map
     for(int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             std::cin >> pinpolhosMap[i][j];
+            char c = pinpolhosMap[i][j];
+            if (isdigit(c)) {
+                bicicleList.insert(c);
+                bicicleCoordinates.push_back(std::pair <us_int, us_int> (i, j));    
+            }
+            else if (c >= 'a' && c <= 'z') peopleList.insert(c);
         }
     }
 
-
+    // read and make the turist preference list
     makePeoplePreferenceList(peoplePreference);
-    /*
-    makePeopleList(peopleList);
-    makeBicicleList(bicicleList);
+    
+    makePeopleList(peopleListV, peopleList);
+    makeBicicleList(bicicleListV, bicicleList);
 
     // call BFS
 
+    for(auto b: bicicleCoordinates) {
+        BFS bfs(pinpolhosMap, b, peopleListV);
+    }
+
+
 
     // call Gale_Shapley
-    GaleShapley gs(peopleList, bicicleList, peoplePreference, biciclePreference);
+    GaleShapley gs(peopleListV, bicicleListV, peoplePreference, biciclePreference);
     gs.gpExecution();
 
     // output
     gs.printResult();
-    */
 
     return 0;
 }
 
-void makePeopleList(std::vector <char> List) {
-    int size = List.size();
+void makePeopleList(std::vector <char> List, std::set <char>  set){
+    int size = set.size();
 
-    for(int i = 0; i < size; i++) {
-        List[i] = 'a' + i;
-    }
+    for(auto e: set) List.push_back(e);
+
 }
-void makeBicicleList(std::vector <int> List) {
-    int size = List.size();
+void makeBicicleList(std::vector <int> List, std::set <int>  set) {
+    int size = set.size();
 
-    for(int i = 0; i < size; i++) {
-        List[i] = i;
-    }
+    for(auto e: set) List.push_back(e);
 }
 
 void makePeoplePreferenceList(std::vector < std::vector <int> > peoplePreference) {

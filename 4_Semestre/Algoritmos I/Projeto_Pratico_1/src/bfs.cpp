@@ -1,9 +1,9 @@
 #include "bfs.hpp"
 
 BFS::BFS(
-    std::vector < std::vector <char> > map,
-    std::pair <us_int, us_int> coordinate,
-    std::vector <char> preferenceEntityList
+    std::vector < std::vector <char> > &map,
+    std::pair <us_int, us_int> &coordinate,
+    std::vector <char> &preferenceEntityList
     )
 {
    _map = map; 
@@ -18,12 +18,14 @@ BFS::BFS(
 }
 
 void BFS::createExploredMap() {
-    _exploredMap.resize(_M, std::vector <bool> (_N));
+    _exploredMap.resize(_N, std::vector <bool> (_M));
 }
 
 void BFS::BFSExecution() {
     std::queue < std::pair <us_int, us_int> > actual;
     actual.push(_coordinate);
+
+    _exploredMap[_coordinate.first][_coordinate.second] = true;
 
     while(actual.size() != 0) {
         actual = BFSIteration(actual);
@@ -31,7 +33,7 @@ void BFS::BFSExecution() {
 
 }
 
-std::queue < std::pair <us_int, us_int> > BFS::BFSIteration(std::queue < std::pair <us_int, us_int> > actual) {
+std::queue < std::pair <us_int, us_int> > BFS::BFSIteration(std::queue < std::pair <us_int, us_int> > &actual) {
     std::queue < std::pair <us_int, us_int> > nextLayer; // next layer of execution of the BFS
     
     while(actual.size() != 0) {
@@ -44,15 +46,19 @@ std::queue < std::pair <us_int, us_int> > BFS::BFSIteration(std::queue < std::pa
 
         if(isValidCoord(coord.first + 1, coord.second)) {
             nextLayer.push(std::pair <us_int, us_int> (coord.first + 1, coord.second));
+            _exploredMap[coord.first + 1][coord.second] = true;
         }
         if(isValidCoord(coord.first - 1, coord.second)) {
             nextLayer.push(std::pair <us_int, us_int> (coord.first - 1, coord.second));
+            _exploredMap[coord.first - 1][coord.second] = true;
         }
         if(isValidCoord(coord.first, coord.second + 1)) {
             nextLayer.push(std::pair <us_int, us_int> (coord.first, coord.second + 1));
+            _exploredMap[coord.first][coord.second + 1] = true;
         }
         if(isValidCoord(coord.first, coord.second - 1)) {
             nextLayer.push(std::pair <us_int, us_int> (coord.first, coord.second - 1));
+            _exploredMap[coord.first][coord.second - 1] = true;
         }
     }
 
@@ -61,10 +67,10 @@ std::queue < std::pair <us_int, us_int> > BFS::BFSIteration(std::queue < std::pa
     return nextLayer;
 }
 
-bool BFS::isValidCoord(us_int x, us_int y) {
-    char description = _map[x][y];
-
+bool BFS::isValidCoord(short int x, short int y) {
     if(x < 0 || y < 0 || x >= _N || y >= _M) return false; // if the coordinate is inside the map
+    
+    char description = _map[x][y];
     if(description == '-') return false; // if the coordinate is a valid path
     if(_exploredMap[x][y]) return false; // if this coordinate is already explored
     return true;
@@ -90,7 +96,14 @@ std::vector <char> BFS::sortedSolution() {
     }
 
 
-    std::sort(list.begin(), list.end(), [](const std::pair <char, us_int> &a, const std::pair <char, int> &b) -> bool {return a.second < b.second;});
+    std::sort(
+        list.begin(), 
+        list.end(), 
+        [](const std::pair <char, us_int> &a, const std::pair <char, int> &b) -> bool {
+            if (a.second > b.second) return false;
+            if (a.second < b.second) return true;
+            return a.first < b.first;
+        });
     
     std::vector <char> preference;
 

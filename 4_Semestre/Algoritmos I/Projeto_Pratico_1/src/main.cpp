@@ -9,7 +9,7 @@
 
 using us_int = unsigned short int;
 
-void makePeoplePreferenceList(std::vector < std::vector <int> > peoplePreference);
+void makePeoplePreferenceList(std::vector < std::vector <int> > &peoplePreference);
 void makePeopleList(std::vector <char> &List, std::set <char>  set);
 void makeBicicleList(std::vector <int> &List, std::set <int>  set);
 
@@ -43,7 +43,7 @@ int main() {
             std::cin >> pinpolhosMap[i][j];
             char c = pinpolhosMap[i][j];
             if (isdigit(c)) {
-                bicicleList.insert(c);
+                bicicleList.insert(c - '0');
                 bicicleCoordinates.push_back(std::pair <us_int, us_int> (i, j));    
             }
             else if (c >= 'a' && c <= 'z') peopleList.insert(c);
@@ -57,25 +57,28 @@ int main() {
     makeBicicleList(bicicleListV, bicicleList);
 
     for(int i = 0; i < n; i++) {
-        std::cout << bicicleListV[i] << " ";
+        std::cout << (char)('a' + i) << " -> ";
+        for(auto e: peoplePreference[i]) std::cout << e << " ";
+        std::cout << std::endl;
     }
-
-    std::cout << std::endl;
-
-    for(int i = 0; i < n; i++) {
-        std::cout << peopleListV[i] << " ";
-    }
-
-    std::cout << std::endl;
 
     // call BFS
 
     for(int i = 0; i < n; i++) {
         BFS bfs(pinpolhosMap, bicicleCoordinates[i], peopleListV);
         bfs.BFSExecution();
-        char bicicle = pinpolhosMap[bicicleCoordinates[i].first][bicicleCoordinates[i].second];
+        int bicicle = pinpolhosMap[bicicleCoordinates[i].first][bicicleCoordinates[i].second] - '0';
         biciclePreference[bicicle] = bfs.sortedSolution();
     }
+
+    for(auto bike: biciclePreference) {
+        for (auto e: bike) std::cout << e << " ";
+        std::cout << std::endl;
+    }
+
+
+
+
 
     // call Gale_Shapley
     GaleShapley gs(peopleListV, bicicleListV, peoplePreference, biciclePreference);
@@ -99,7 +102,7 @@ void makeBicicleList(std::vector <int> &List, std::set <int>  set) {
     for(auto e: set) List.push_back(e);
 }
 
-void makePeoplePreferenceList(std::vector < std::vector <int> > peoplePreference) {
+void makePeoplePreferenceList(std::vector < std::vector <int> > &peoplePreference) {
     int size = peoplePreference.size();
 
     // preferece is a auxiliar vector this will store the unnordered preference list
@@ -112,10 +115,14 @@ void makePeoplePreferenceList(std::vector < std::vector <int> > peoplePreference
         }
 
         // sort the vector in the descendent order
-        std::sort(preference.begin(), preference.end(), [](const std::pair <int, int> &a, const std::pair <int, int> &b) -> bool {return a.first > b.first;});
+        std::sort(preference.begin(), preference.end(), [](const std::pair <int, int> &a, const std::pair <int, int> &b) -> bool {
+            if (a.first < b.first) return false;
+            if (a.first > b.first) return true;
+            return a.second < b.second;
+            });
         
         for(int j = 0; j < size; j++) {
-            peoplePreference[i][j] == preference[j].second;
+            peoplePreference[i][j] = preference[j].second;
         }
     }
 }

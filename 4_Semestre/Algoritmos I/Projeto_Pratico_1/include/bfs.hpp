@@ -14,9 +14,9 @@ using us_int = unsigned short int;
 class BFS {
     public:
         BFS(
-            std::vector < std::vector <char> > map,
-            std::pair <us_int, us_int> coordinate,
-            std::vector <char> preferenceEntityList
+            std::vector < std::vector <char> > &map,
+            std::pair <us_int, us_int> &coordinate,
+            std::vector <char> &preferenceEntityList
             );
 
         void BFSExecution(); // execute the BFS' algorithm
@@ -24,10 +24,9 @@ class BFS {
 
     private:
         void createExploredMap(); // auxiliar method that create a mask with the avaliable paths
-        std::queue < std::pair <us_int, us_int> > BFSIteration(std::queue < std::pair <us_int, us_int> > actual);
-        bool isValidCoord(us_int x, us_int y);
+        std::queue < std::pair <us_int, us_int> > BFSIteration(std::queue < std::pair <us_int, us_int> > &actual);
+        bool isValidCoord(short int x, short int y);
         bool isEntity(us_int x, us_int y);
-
         std::vector < std::vector <char> > _map;
         std::pair < us_int, us_int > _coordinate;
         std::vector <char> _preferenceEntityList; // List of Entity

@@ -86,12 +86,12 @@ void GaleShapley::gpExecution() {
 
 void GaleShapley::printResult() {
     for(auto e: proposeSideSolution) {
-        std::cout << e.first << " -> " << e.second << std::endl;
+        std::cout << e.first << " " << e.second << std::endl;
     }
 
     std::cout << std::endl;
 
     for(auto e: passiveSideSolution) {
-        std::cout << e.first << " -> " << e.second << std::endl;
+        std::cout << e.first << " " << e.second << std::endl;
     }
 }

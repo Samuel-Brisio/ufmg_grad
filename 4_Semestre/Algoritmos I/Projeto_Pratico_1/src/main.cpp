@@ -10,9 +10,7 @@
 using us_int = unsigned short int;
 
 void makePeoplePreferenceList(std::vector < std::vector <int> > &peoplePreference);
-void makePeopleList(std::vector <char> &List, std::set <char>  set);
-void makeBicicleList(std::vector <int> &List, std::set <int>  set);
-
+void sortList(std::vector <char> &list);
 int main() {
 
     // read the input
@@ -26,11 +24,8 @@ int main() {
     // create the matrix that will store the map
     std::vector < std::vector < char > > pinpolhosMap (rows, std::vector <char> (cols) );
 
-    std::set < char > peopleList;
-    std::set < int > bicicleList;
-
-    std::vector < char > peopleListV;
-    std::vector < int > bicicleListV;
+    std::vector < char > peopleList;
+    std::vector < int > bicicleList;
 
     std::vector < std::vector <int> > peoplePreference (n, std::vector <int> (n)); 
     std::vector < std::vector <char> > biciclePreference (n, std::vector <char> (n)); 
@@ -43,18 +38,17 @@ int main() {
             std::cin >> pinpolhosMap[i][j];
             char c = pinpolhosMap[i][j];
             if (isdigit(c)) {
-                bicicleList.insert(c - '0');
+                bicicleList.push_back(c - '0');
                 bicicleCoordinates.push_back(std::pair <us_int, us_int> (i, j));    
             }
-            else if (c >= 'a' && c <= 'z') peopleList.insert(c);
+            else if (c >= 'a' && c <= 'z') peopleList.push_back(c);
         }
     }
 
     // read and make the turist preference list
     makePeoplePreferenceList(peoplePreference);
     
-    makePeopleList(peopleListV, peopleList);
-    makeBicicleList(bicicleListV, bicicleList);
+    sortList(peopleList);
 
     for(int i = 0; i < n; i++) {
         std::cout << (char)('a' + i) << " -> ";
@@ -65,7 +59,7 @@ int main() {
     // call BFS
 
     for(int i = 0; i < n; i++) {
-        BFS bfs(pinpolhosMap, bicicleCoordinates[i], peopleListV);
+        BFS bfs(pinpolhosMap, bicicleCoordinates[i], peopleList);
         bfs.BFSExecution();
         int bicicle = pinpolhosMap[bicicleCoordinates[i].first][bicicleCoordinates[i].second] - '0';
         biciclePreference[bicicle] = bfs.sortedSolution();
@@ -81,7 +75,7 @@ int main() {
 
 
     // call Gale_Shapley
-    GaleShapley gs(peopleListV, bicicleListV, peoplePreference, biciclePreference);
+    GaleShapley gs(peopleList, bicicleList, peoplePreference, biciclePreference);
     gs.gpExecution();
 
     // output
@@ -90,16 +84,11 @@ int main() {
     return 0;
 }
 
-void makePeopleList(std::vector <char> &List, std::set <char>  set){
-    int size = set.size();
+void sortList(std::vector <char> &list){
+    int size = list.size();
 
-    for(auto e: set) List.push_back(e);
+    std::sort(list.begin(), list.end());
 
-}
-void makeBicicleList(std::vector <int> &List, std::set <int>  set) {
-    int size = set.size();
-
-    for(auto e: set) List.push_back(e);
 }
 
 void makePeoplePreferenceList(std::vector < std::vector <int> > &peoplePreference) {

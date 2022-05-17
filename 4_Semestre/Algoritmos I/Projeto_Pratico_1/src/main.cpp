@@ -10,7 +10,10 @@
 using us_int = unsigned short int;
 
 void makePeoplePreferenceList(std::vector < std::vector <int> > &peoplePreference);
-void sortList(std::vector <char> &list);
+
+template <typename T>
+void sortList(std::vector <T> &list);
+
 int main() {
 
     // read the input
@@ -32,6 +35,12 @@ int main() {
 
     std::vector < std::pair <us_int, us_int> > bicicleCoordinates;
 
+    /* 
+    *********************************************************************************
+                            Modulo 1
+    *********************************************************************************
+    */                        
+
     // read the map
     for(int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -49,14 +58,13 @@ int main() {
     makePeoplePreferenceList(peoplePreference);
     
     sortList(peopleList);
+    sortList(bicicleList);
 
-    for(int i = 0; i < n; i++) {
-        std::cout << (char)('a' + i) << " -> ";
-        for(auto e: peoplePreference[i]) std::cout << e << " ";
-        std::cout << std::endl;
-    }
-
-    // call BFS
+     /* 
+    *********************************************************************************
+                            Modulo 2
+    *********************************************************************************
+    */ 
 
     for(int i = 0; i < n; i++) {
         BFS bfs(pinpolhosMap, bicicleCoordinates[i], peopleList);
@@ -65,16 +73,11 @@ int main() {
         biciclePreference[bicicle] = bfs.sortedSolution();
     }
 
-    for(auto bike: biciclePreference) {
-        for (auto e: bike) std::cout << e << " ";
-        std::cout << std::endl;
-    }
-
-
-
-
-
-    // call Gale_Shapley
+     /* 
+    *********************************************************************************
+                            Modulo 3
+    *********************************************************************************
+    */ 
     GaleShapley gs(peopleList, bicicleList, peoplePreference, biciclePreference);
     gs.gpExecution();
 
@@ -84,7 +87,8 @@ int main() {
     return 0;
 }
 
-void sortList(std::vector <char> &list){
+template <typename T>
+void sortList(std::vector <T> &list){
     int size = list.size();
 
     std::sort(list.begin(), list.end());

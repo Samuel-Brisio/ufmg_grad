@@ -56,7 +56,13 @@ int main() {
 
     // read and make the turist preference list
     makePeoplePreferenceList(peoplePreference);
-    
+
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < n; j++) {
+            std::cout << peoplePreference[i][j] << " ";
+        }
+        std::cout << std::endl;
+    }
     sortList(peopleList);
     sortList(bicicleList);
 
@@ -71,6 +77,13 @@ int main() {
         bfs.BFSExecution();
         int bicicle = pinpolhosMap[bicicleCoordinates[i].first][bicicleCoordinates[i].second] - '0';
         biciclePreference[bicicle] = bfs.sortedSolution();
+    }
+
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < n; j++) {
+            std::cout << biciclePreference[i][j] << " ";
+        }
+        std::cout << std::endl;
     }
 
      /* 

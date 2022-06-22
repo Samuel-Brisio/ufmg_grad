@@ -5,32 +5,6 @@
 #include <vector>
 
 void dijkstra(int nodes, std::vector <std::vector < int > > &edges, std::vector <std::vector < int > > &maximum_capacity, int source );
-void make_heap(std::vector <std::pair <int, int> > &heap, std::vector <int> &index, int number);
-
-void heapify(std::vector <std::pair <int, int> > &arr, int n, int i, std::vector <int> &index)
-{
-    int largest = i; // Initialize largest as root
-    int l = 2 * i + 1; // left = 2*i + 1
-    int r = 2 * i + 2; // right = 2*i + 2
- 
-    // If left child is larger than root
-    if (l < n && arr[l].second > arr[largest].second)
-        largest = l;
- 
-    // If right child is larger than largest so far
-    if (r < n && arr[r].second > arr[largest].second)
-        largest = r;
- 
-    // If largest is not root
-    if (largest != i) {
-        std::swap(arr[i], arr[largest]);
-        std::swap(index[i], index[largest]);
-
-        // Recursively heapify the affected sub-tree
-        heapify(arr, n, largest, index);
-    }
-}
-
 
 int main() {
     /* 
@@ -41,6 +15,7 @@ int main() {
     int N, M, Q;
     std::cin >> N >> M >> Q;
 
+    
     std::vector < std::vector < int > > highways (N, std::vector <int> (N)); 
 
     std::vector <std::vector < int > > maximum_capacity (N, std::vector <int> (N));
@@ -54,7 +29,7 @@ int main() {
         int u, v, w;
         std::cin >> u >> v >> w;
 
-        highways[u-1][v-1] = w;
+        highways[u-1][v-1] = std::max(highways[u-1][v-1], w);
     }
 
     for(int i = 0; i < N; i++) {
@@ -72,53 +47,35 @@ int main() {
 
 void dijkstra(int nodes, std::vector <std::vector < int > > &edges, std::vector <std::vector < int > > &maximum_capacity, int source ) {
     // pi -> store the maximum capacity between source and a node V
-    std::vector < int > pi (nodes, -1);
+    std::vector < int > pi (nodes, INT32_MIN);
     pi[source] = INT32_MAX;
 
-    std::vector <std::pair <int, int> > heap;
-    std::vector <int> index; 
+    std::priority_queue <std::pair <int, int> > pq;
 
     for(int i = 0; i < nodes; i++) {
-        std::pair <int, int> p (i, pi[i]);
-        heap.push_back(p);
-        index.push_back(i);
+        std::pair <int, int> p (pi[i], i);
+        pq.push(p);
     }
 
-    // Build heap (rearrange array)
-    make_heap(heap, index, nodes);
-
-    int size = heap.size();
-
-    while (size != 0) {
-        std::pair <int, int> u = heap[0];
-        heap[0].second = INT32_MIN;
+    while (!pq.empty()) {
+        std::pair <int, int> u = pq.top();
+        pq.pop();
 
         for(int i = 0; i < nodes; i++) {
-            int weight = edges[u.first][i];
+            int weight = edges[u.second][i];
 
             // if there is no edge
             if(weight == 0) continue;
 
-            int new_pi = std::min(pi[u.first], weight);
+            int new_pi = std::min(pi[u.second], weight);
             if(pi[i] < new_pi) {
-                heap[index[i]] = std::pair <int, int> (i, new_pi);
-                make_heap(heap, index, nodes);
+                pq.push(std::pair<int, int> (new_pi, i));
                 pi[i] = new_pi;
             }
         }
-        size--;
     }
 
-    pi[source] = 0;
     for(int i = 0; i < nodes; i++) {
         maximum_capacity[source][i] = pi[i];
-    }
-
-}
-
-void make_heap(std::vector <std::pair <int, int> > &heap, std::vector <int> &index, int number) {
-     // Build heap (rearrange array)
-    for (int i = number / 2 - 1; i >= 0; i--) {
-        heapify(heap, number, i, index);
     }
 }

@@ -9,3 +9,4 @@ teste.cpp
 **/*.zip
 **/input/
 **/*.out
+**/etc/**

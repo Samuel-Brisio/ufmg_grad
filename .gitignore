@@ -1,12 +1,14 @@
 **/*.txt
+**/*.zip
+**/*.out
+**/*.out
+**/*.o
+teste.cpp
 **/output/
 .vscode/
 **/obj/
 **/bin/
-teste.cpp
 **/outros/
 **/Processo/
-**/*.zip
 **/input/
-**/*.out
 **/etc/**

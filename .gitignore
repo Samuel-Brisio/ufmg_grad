@@ -1,7 +1,7 @@
 **/*.txt
 **/*.zip
 **/*.out
-**/*.out
+**/*.pdf
 **/*.o
 teste.cpp
 **/output/
@@ -12,3 +12,4 @@ teste.cpp
 **/Processo/
 **/input/
 **/etc/**
+4_Semestre/Algoritmos I/Projeto_Pratico_3/stresstest_TP3_Alg1/*

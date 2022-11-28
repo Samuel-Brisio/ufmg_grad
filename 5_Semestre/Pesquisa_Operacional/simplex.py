@@ -16,106 +16,62 @@ def main():
 
     if doenstHavTrivialSolution:
         # Solve auxiliar PL
-        auxTableau = createAuxiliarPL(tableau)
-        auxTableau = canonicBase(auxTableau)
-        auxTableau, status = solvePL(auxTableau)
+        auxTableau = createAuxiliarPL(tableau.copy())
+        auxTableau = canonicBase(auxTableau.copy())
+        auxTableau, status = solvePL(auxTableau.copy(), dual=False)
         
-        nRows, nCols = auxTableau.shape
+        nRows, _ = auxTableau.shape
         certificado = auxTableau[0, 0:nRows - 1]
 
         if auxTableau[0, -1] < 0:
             certificado = auxTableau[0, 0:nRows - 1]
             print('inviavel')
-            print(certificado)
-        elif auxTableau[0, -1] > 0:
-            print('ilimitada')
-            tableau = createTableau(matrix, b, objectFunction)
-            print(getX(auxTableau, len(objectFunction)))
-            _, _, V = np.linalg.svd(matrix, full_matrices=True)
-            certificado = V[-1]
-            print(certificado)
-        else:
-            print('otima')
-            print(certificado)
+            printArray(certificado)
+            return
 
+
+        # printTableau(auxTableau)
+        # tableau = originalPL(tableau.copy(), auxTableau.copy())
+        # printTableau(tableau)
+        # print("Formato Canonico")
+        # tableau = canonicBase(tableau)
+        # printTableau(tableau)
+        #exit(2)
+
+    #Resolve a PL
+    tableau, status = solvePL(tableau)
+
+    nRows, nCols = tableau.shape
+
+    # Registro de Operações
+    certificado = tableau[0, 0:nRows - 1]
+
+    if status == 'ilimitada':
+        print(status)
+        # Valor X
+        printArray(getX(tableau, len(objectFunction)))
+        # Certificado de ilimitabilidade
+        _, _, V = np.linalg.svd(matrix, full_matrices=True)
+        certificado = V[-1]
+        printArray(certificado)
     else:
-        tableau, status = solvePL(tableau)
-        nRows, nCols = tableau.shape
-        certificado = tableau[0, 0:nRows - 1]
-        if status == 'ilimitada':
-            print(status)
-            # Valor X
-            print(getX(tableau, len(objectFunction)))
-            # Certificado de ilimitabilidade
-            _, _, V = np.linalg.svd(matrix, full_matrices=True)
-            certificado = V[-1]
-            print(certificado)
-        else:
-            print('otima')
-            # Valor Otimo
-            print(tableau[0, -1])
-            # Valor de x
-            print(getX(tableau, len(objectFunction)))
-            # Certificado de ótimo
-            print(certificado)
+        print('otima')
+        # Valor Otimo
+        print(f"{tableau[0, -1]:.7f}")
+        # Valor de x
+        x = getX(tableau, len(objectFunction))
+        printArray(x)
+        # Certificado de ótimo
+        printArray(certificado)
 
-
-def splitInput():
-    string = input()
-    lista = re.split(' ', string)
-
-    npArray = np.asarray(lista)
-    npArray = npArray.astype(int)
-
-    return npArray
-
-
-def read_input():
     
-    dimension = splitInput()
-    objectFunction = splitInput()
-
-    b = np.empty(dimension[0])
-    matrix = np.empty((dimension))
-
-    for i in range(dimension[0]):
-        row = splitInput()
-        b[i] = row[-1]
-        row = np.delete(row, -1)
-        matrix[i] = row
-    
-    return matrix, b, objectFunction
-
-def createTableau(matrix, b, objectiveFunction):
-    nRows = b.size + 1
-    nCols = (matrix.shape)[1] + 2 * b.size + 1
-    tableau = np.empty((nRows, nCols))    
-
-    # Registro de operações
-    tableau[0, 0:b.size] = np.zeros(b.size)
-    tableau[1:, 0:b.size] = np.identity(b.size)
-
-    # Função objetiva
-    tableau[0, b.size:(matrix.shape)[1]+ b.size] = (- objectiveFunction)
-    tableau[0, (matrix.shape)[1]+ b.size: (matrix.shape)[1]+ 2*b.size] = np.zeros(b.size)
-
-    #valor otimo
-    tableau[0, -1] = 0.0
-
-    #matrix
-    tableau[1:, b.size:(matrix.shape)[1]+ b.size] = matrix
-    tableau[1:, (matrix.shape)[1]+ b.size: (matrix.shape)[1]+ 2*b.size] = np.identity(b.size)
-
-    #b
-    tableau[1:, -1] = b
-
-    return tableau
-
-def solvePL(tableau):
+def solvePL(tableau, dual=True):
     nRows = (tableau.shape)[0]
     status = ''
 
     while(True):
+        if dual:
+            printTableau(tableau)
 
         objectiveFunction = tableau[0, nRows-1:-1]
         indx = None
@@ -129,15 +85,31 @@ def solvePL(tableau):
         if indx == None:
             break
 
-        tableau, status = tableauPivoting(tableau, nRows - 1 + indx)
+        isPlDual = False
+
+        for i in range(1, len(tableau[:, -1])):
+            if tableau[i, -1] < 0 and bool(sum(tableau[i, nRows-1:-1])):
+                isPlDual = True
+                break
+
+        if isPlDual:
+            tableau, status = dualPl(tableau)
+
+        if isPlDual and dual:
+            print("Vai precisar da Dual")
+            tableau, status = dualPl(tableau)
+            print(status)
+
+        else:
+            tableau, status = tableauPivoting(tableau, nRows - 1 + indx)
+
+        eps = 10**(-8)
+        tableau[np.abs(tableau) < eps] = 0
 
         if status != 'normal':
             break
 
     return tableau, status
-
-
-    
 
 
 def tableauPivoting(tableau, indx):
@@ -200,32 +172,151 @@ def createAuxiliarPL(tableau):
 
 def canonicBase(tableau):
     nRows, nCols = tableau.shape
+    nVars = nRows - 1
 
-    for i in range(1, nRows):
-        tableau[0] -= tableau[i]
+    # for i in range(nVars, nCols):
+    #     escalar = tableau[0, nVars+i]
+    #     print(escalar)
+    #     tableau[0] -= tableau[i]
+
+    for j in range(nVars, nCols-1):
+        if tableau[0, j] != 0:
+            for i in range(1, nRows):
+                if tableau[i, j] == 1:
+                    # print(f"i = {i}, j = {j}, escalar= {tableau[0, j]}")
+                    tableau[0] -= tableau[0, j] * tableau[i] 
 
     return tableau
 
-def getX(tableau, nVar):
+def originalPL(tableau, auxTableau):
+    nRows, _ = auxTableau.shape
+    nRestriction = nRows - 1
+
+    tableau[1:, nRestriction:-1] = auxTableau[1:, nRestriction: -(nRestriction+1)]
+    tableau[:, -1] = auxTableau[:, -1]
+    tableau[1:, nRestriction: 2*nRestriction] = np.identity(nRestriction)
+
+    return tableau
+
+
+def dualPl(tableau):
     nRows, nCols = tableau.shape
 
-    printTableau(tableau)
+    hasNegativeB = bool(sum(tableau[1:, -1] < 0))
+    lista = []
+    row = 0
 
+    for row in range(1, nRows):
+        if tableau[row, -1] < 0:
+            for j in range(nRows-1, nCols-1):
+                if tableau[row, j] >= 0:
+                    continue
+
+                lista.append((tableau[0, j] / (-tableau[row, j]), (row, j)))
+
+            tableau[row] *= -1
+            break
+                   
+    # se não encontrar nenhuma Col_j para pivotear, isso quer dizer que Row_i todoas os elementos >= 0
+    if len(lista) == 0:
+        return tableau, "Não foi possivel executar o dual"
+
+    # Pega o menor pivo
+    pRow, pCol = min(lista)[1]
+
+    # Realiza o pivoteamento da linha escolhida
+    tableau[pRow] /= tableau[pRow, pCol]
+
+    # Realiza o pivoteamento na matrix
+    for i in range(nRows):
+        num = tableau[i, pCol]
+        
+        if i == pRow:
+            continue
+
+        elif num == 0:
+            continue
+
+        coef =  - (tableau[i, pCol] / tableau[pRow, pCol])
+        tableau[i] = tableau[i] + coef * tableau[pRow]
+
+    return tableau, "normal"
+
+
+def getX(tableau, nVar):
+    nRows, nCols = tableau.shape
     objectiveFunction = tableau[0, nRows - 1: nRows+nVar-1]
-
     x = []
 
     for i in range(len(objectiveFunction)):
-        if objectiveFunction[i] == 0:
+        if objectiveFunction[i] == 0 and bool(sum(tableau[:, i + nRows - 1] == 1)):
             for j in range(1, nRows):
                 if tableau[j, i + nRows - 1] == 1:
                     x.append(tableau[j, -1])
         else:
             x.append(0)
-
     return x
 
 def printTableau(tableau):
-    print(tabulate(tableau, tablefmt='fancy_grid', floatfmt=".2f"))
-    # print(tableau)
+    # print(tabulate(tableau, tablefmt='fancy_grid', floatfmt=".2f"))
+    # print(200 * '-')
+
+    pass
+
+def printArray(arr): 
+    for i in range(len(arr)):
+        print(f"{arr[i]:.7f}", end=" ")
+    print()
+
+
+def splitInput():
+    string = input()
+    lista = re.split(' ', string)
+
+    npArray = np.asarray(lista)
+    npArray = npArray.astype(int)
+
+    return npArray
+
+def read_input():
+    
+    dimension = splitInput()
+    objectFunction = splitInput()
+
+    b = np.empty(dimension[0])
+    matrix = np.empty((dimension))
+
+    for i in range(dimension[0]):
+        row = splitInput()
+        b[i] = row[-1]
+        row = np.delete(row, -1)
+        matrix[i] = row
+    
+    return matrix, b, objectFunction
+
+def createTableau(matrix, b, objectiveFunction):
+    nRows = b.size + 1
+    nCols = (matrix.shape)[1] + 2 * b.size + 1
+    tableau = np.empty((nRows, nCols))    
+
+    # Registro de operações
+    tableau[0, 0:b.size] = np.zeros(b.size)
+    tableau[1:, 0:b.size] = np.identity(b.size)
+
+    # Função objetiva
+    tableau[0, b.size:(matrix.shape)[1]+ b.size] = (- objectiveFunction)
+    tableau[0, (matrix.shape)[1]+ b.size: (matrix.shape)[1]+ 2*b.size] = np.zeros(b.size)
+
+    #valor otimo
+    tableau[0, -1] = 0.0
+
+    #matrix
+    tableau[1:, b.size:(matrix.shape)[1]+ b.size] = matrix
+    tableau[1:, (matrix.shape)[1]+ b.size: (matrix.shape)[1]+ 2*b.size] = np.identity(b.size)
+
+    #b
+    tableau[1:, -1] = b
+
+    return tableau
+
 main()

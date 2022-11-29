@@ -42,7 +42,7 @@ def instance(exp=0, seed=0):
     uniquePoints = 0
 
     while size != uniquePoints:
-        points = np.random.randint(0, 2048, (size, 2))
+        points = np.random.randint(0, 65536, (size, 2))
         uniquePoints = len(np.unique(points, axis=0))
 
     return points

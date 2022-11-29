@@ -12,6 +12,12 @@ class Node:
 
     def __lt__(self, other):
         return self.bound < other.bound
+
+    def __repr__(self) -> str:
+        return f"estimativa: {self.bound}, custo atual: {self.cost}, nivel do nó: {self.level}, nós das soluções: {self.sol}"
+
+    def __str__(self) -> str:
+        return f"estimativa: {self.bound}, custo atual: {self.cost}, nivel do nó: {self.level}, nós das soluções: {self.sol}"
         
 
 class TravellingSalesman_BAB:
@@ -96,10 +102,9 @@ class TravellingSalesman_BAB:
         queue = [root]
         heapify(queue)
 
-        self.best = np.infty
+        self.best = np.inf
         self.solution = [] # Tem que ser uma lista pois o nó 0 se repete
 
-        print(len(queue), "Ok")
 
         while len(queue) != 0:
             # Retira o nó com a menor estimativa
@@ -108,15 +113,17 @@ class TravellingSalesman_BAB:
             # Se já percorreu toda a arvore
             # E tiver um custo menor que o melhor
             if node.level > self.size-1 and self.best > node.cost:
+                    print(f"end node: {node}")
                     self.best = node.cost
                     self.solution = node.sol
 
             elif node.bound < self.best:
                 if node.level < self.size - 1:
-                    for k in range (1, self.size-1):
+                    setSolution = set(node.sol)
+                    for k in range (1, self.size):
                         if (
-                            k not in set(node.sol)
-                            and self.distanceMatrix[node.sol[-1], k] != np.infty
+                            k not in setSolution
+                            and self.distanceMatrix[node.sol[-1], k] != np.inf
                             # Qual é a estimativa se o k entrar na solução 
                             and self.bound(node.sol + [k]) < self.best
                         ):
@@ -133,13 +140,13 @@ class TravellingSalesman_BAB:
                 # node.level == self.size - 1 
                 # calcula se a volta para o nó inicial
                 elif (
-                    self.distanceMatrix[node.sol[-1][0]] != np.infty
+                    self.distanceMatrix[node.sol[-1], 0] != np.inf
                     and self.bound(node.sol + [0]) < self.best
                 ):
                     newNode = Node(
                         self.bound(node.sol + [0]),
                         node.level + 1,
-                        node.cost + self.distanceMatrix[node.s[-1], 0],
+                        node.cost + self.distanceMatrix[node.sol[-1], 0],
                         node.sol + [0]
                     )
 

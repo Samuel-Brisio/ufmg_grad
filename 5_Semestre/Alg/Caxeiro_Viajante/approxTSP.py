@@ -1,7 +1,9 @@
 from scipy.spatial import distance
 import numpy as np
+import networkx as nx
+import matplotlib.pyplot as plt
 
-class ApproxTST():
+class ApproxTSP():
     def __init__(self, data, distanceType):
         # Set of Points
         self.data = data
@@ -14,6 +16,7 @@ class ApproxTST():
         else:
             self.distanceMatrix = self.__distance2D__(euclidian=False)
             
+        self.G = self.__createGraph__()
 
     def __distance2D__(self, euclidian):
         if euclidian == True:
@@ -33,7 +36,21 @@ class ApproxTST():
 
         return distanceMatrix
 
-    def solve():
-        root = "0"
-        minTree = prim()
-        H = "Preorder walk from the root"
+    def __createGraph__(self):
+        return nx.from_numpy_matrix(self.distanceMatrix)
+
+    def solve(self):
+        root = 0
+        MST = nx.minimum_spanning_tree(self.G, algorithm='prim')
+        hamiltonianCycle = nx.dfs_preorder_nodes(MST, root)
+        hamiltonianNodes = list(hamiltonianCycle)
+
+        cost = 0
+        for i in range(len(hamiltonianNodes) -1):
+            cost += self.distanceMatrix[hamiltonianNodes[i], hamiltonianNodes[i+1]]
+        # close the cycle
+        cost += self.distanceMatrix[-1, 0]
+        print(cost)
+        nx.draw_networkx(self.G)
+        plt.show()
+        

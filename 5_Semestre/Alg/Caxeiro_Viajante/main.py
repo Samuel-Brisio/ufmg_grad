@@ -1,39 +1,50 @@
 import random
 import numpy as np
-from heapq import *
-from scipy.spatial import distance
 import time
 import argparse
+from threading import Timer
+import os
+import signal
+from memory_profiler import profile
 
-from branch_and_bound import *
-from approxTSP import *
-from christofides import *
+from classe import *
 
 
+def over30min():
+    print(f'Duração do Programa: NA seconds')
+    print(f'Seed Used: NA')
+    print(f'Uso da Memória: NA')
+    os.kill(os.getpid(), signal.SIGTERM)
 
-
-
+@profile()
 def main():
+    # 30 minutes timer
+    timelimite = 60 * 30
+    timer = Timer(timelimite, over30min)
+    timer.start()
 
     args = argumentsParsing()
 
     start = time.time()
+    print(f'Program Arguments: {args}')
     
-    data = instance(exp=args.expoent, seed=args.seed)
+    data, seed = instance(exp=args.expoent, seed=args.seed)
 
     if args.algorithm == 'BaB':
         TS = TravellingSalesman_BAB(data, args.distance)
         TS.solve()
     elif args.algorithm == 'TAT':
-        TAT = ApproxTSP(data, args.distance)
+        TAT = TwiceAroundTreeTSP(data, args.distance)
         TAT.solve() 
     elif args.algorithm == 'Chris':
         Chris = Christofides(data=data, distanceType=args.distance)
         Chris.solve()
-        # Chris.draw()
 
-    print(f'Duration: {time.time() - start} seconds')
-
+    timer.cancel()
+    print(f'Duração do Programa: {time.time() - start} seconds')
+    print(f'Seed Used: {seed}')
+    print()
+    print()
 
 def instance(exp=0, seed=0):
 
@@ -59,7 +70,7 @@ def instance(exp=0, seed=0):
         points = np.random.randint(0, 2**10, (size, 2))
         uniquePoints = len(np.unique(points, axis=0))
 
-    return points
+    return points, seed
 
 def argumentsParsing():
     # Inicialize the parser
@@ -92,7 +103,6 @@ def argumentsParsing():
     parser.add_argument('-s', '--seed', type=int, default=0)
 
     return parser.parse_args()
-
 
 if __name__ == "__main__":
     main()

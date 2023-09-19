@@ -129,6 +129,7 @@ void init_recursos(void) {
     for(i = 0; i < MAXRESOURCES; i++) {
         availableResources.resouces[i] = 1;
         availableResources.numberThreadHaveResource = 0;
+        availableResources.holdByThread[i].pthread_id = 0;
     }
 }   
 
@@ -143,6 +144,10 @@ void libera_recursos() {
     for(i = 0; i < availableResources.numberThreadHaveResource; i++) {
         if(availableResources.holdByThread[i].pthread_id == pid) {
             requestResource = availableResources.holdByThread[i].information;
+
+            // Marca que a thread não está mais ocupando os recursos
+            availableResources.holdByThread[i].pthread_id = 0;
+
         }
     }
     

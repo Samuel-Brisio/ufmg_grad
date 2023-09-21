@@ -1,11 +1,24 @@
 #include "game.h"
 
-struct Board show_board() {
+struct Board get_game_board() {
     return game_board;
 }
 
-struct Board review_board() {
+struct Board get_review_board() {
     return board_answer;
+}
+
+void load_game(struct Board board) {
+    copy_matrix(board.board, board_answer.board);
+}
+
+int start_game() {
+    for (int i = 0; i < BOARD_N_ROWS; i++) {
+        for (int j = 0; i < BOARD_N_COLS; j++) {
+            game_board.board[i][j] = -2;
+        }
+    }
+    return 0;
 }
 
 int reset_game() {
@@ -17,63 +30,98 @@ int reset_game() {
     return 0;
 }
 
-// revelar célula fora do range do tabuleiro error:                 invalid cell                                        1
-// comando inexistente error:                                       command not found                                   2
-// revela uma célula já revelada error:                             cell already revealed                               3
-// flag em uma célula já marcada error:                             cell already has a flag                             4
-// flag em uma célula revelada error:                               cannot insert flag in revealed cell                 5
-
+// Retorno de do_action
+// Status do Jogo
+// Win 1
+// Lose 2
+// 
+// Menssagem de Erro
+// revelar célula fora do range do tabuleiro error:                 invalid cell                                        10
+// comando inexistente error:                                       command not found                                   20
+// revela uma célula já revelada error:                             cell already revealed                               30
+// flag em uma célula já marcada error:                             cell already has a flag                             40
+// flag em uma célula revelada error:                               cannot insert flag in revealed cell                 50
 int do_action(struct game_action act) {
+    int status;
     switch (act.type)
     {
     // reveal
     case 1:
-        return review_move(act.coordinates);
+        status = review_move(act.coordinates);
         break;
     // Coloca uma flag
     case 2:
-        return set_flag(act.coordinates);
+        status = set_flag(act.coordinates);
         break;
     // Remove uma flag
     case 4:
-        return remove_flag(act.coordinates);
+        status = remove_flag(act.coordinates);
         break;
     // Reseta o Jogo
     case 5:
-        return reset_game();
+        status = reset_game();
         break;
     
     default:
+        status = 20;
         break;
     }
+
+    return status;
 }
 
+// Checa se o jogador ganhou o jogo
+// Se o jogador ganhou              Win             1
+// Ainda não ganhou         Haven't won yet         0
+int check_win() {
+    int nBomb = 0;
+    for (int i = 0; i < BOARD_N_ROWS; i++) {
+        for (int j = 0; j < BOARD_N_COLS; i++) {
+            if (board_answer.board[i][j] == -1) nBomb++; 
+        }
+    }
 
+    int nHideCell = 0;
+    for (int i = 0; i < BOARD_N_ROWS; i++) {
+        for (int j = 0; j < BOARD_N_COLS; i++) {
+            if (game_board.board[i][j] == -2) nHideCell++;
+        }
+    }
+
+    if (nBomb == nHideCell) return 1;
+    return 0;
+}
 
 // Revela uma celula
+// Status do Jogo
+// Valid move  0
+// Win         1    
+// Lose        2
 // Erros que podem aparecer
-// revelar célula fora do range do tabuleiro error:                 invalid cell                                        1
-// revela uma célula já revelada error:                             cell already revealed                               3
+// revelar célula fora do range do tabuleiro error:                 invalid cell                                        10
+// revela uma célula já revelada error:                             cell already revealed                               30
 int review_move(int coordinates[2]) {
     // revelar célula fora do range do tabuleiro error
-    if (coordinates[0] > BOARD_N_ROWS || coordinates[1] > BOARD_N_COLS) return 1;
+    if (coordinates[0] > BOARD_N_ROWS || coordinates[1] > BOARD_N_COLS) return 10;
 
     // cell already revealed
-    if (game_board.board[coordinates[0]][coordinates[1]] >= 0 ) return 3;
+    if (game_board.board[coordinates[0]][coordinates[1]] >= 0 ) return 30;
 
     // cell has a bomb
-    if (board_answer.board[coordinates[0]][coordinates[1]] == -1 ) return -1;
+    if (board_answer.board[coordinates[0]][coordinates[1]] == -1 ) return 2;
 
     game_board.board[coordinates[0]][coordinates[1]] = board_answer.board[coordinates[0]][coordinates[1]];
+
+    if (check_win()) return 1;
 
     return 0;
 }
 
 // // Coloca uma flag
 // Erros que podem aparecer
-// revelar célula fora do range do tabuleiro error:                 invalid cell                                        1
-// flag em uma célula já marcada error:                             cell already has a flag                             4
-// flag em uma célula revelada error:                               cannot insert flag in revealed cell                 5
+// revelar célula fora do range do tabuleiro error:                 invalid cell                                        10
+// flag em uma célula já marcada error:                             cell already has a flag                             40
+// flag em uma célula revelada error:                               cannot insert flag in revealed cell                 50
 int set_flag(int coordinates[2]) {
     // revelar célula fora do range do tabuleiro error
     if (coordinates[0] > BOARD_N_ROWS || coordinates[1] > BOARD_N_COLS) return 1;
@@ -91,7 +139,7 @@ int set_flag(int coordinates[2]) {
 
 
 // Remove uma flag
-// revelar célula fora do range do tabuleiro error:                 invalid cell                                        1
+// revelar célula fora do range do tabuleiro error:                 invalid cell                                        10
 int remove_flag(int coordinates[2]) {
     // revelar célula fora do range do tabuleiro error
     if (coordinates[0] > BOARD_N_ROWS || coordinates[1] > BOARD_N_COLS) return 1;
@@ -101,4 +149,5 @@ int remove_flag(int coordinates[2]) {
     if (game_board.board[coordinates[0]][coordinates[1]] >= 0 ) return 0;
 
     game_board.board[coordinates[0]][coordinates[1]] = -2;
+    return 0;
 }

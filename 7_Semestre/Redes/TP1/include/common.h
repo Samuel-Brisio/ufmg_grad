@@ -18,6 +18,7 @@ struct game_action {
 };
 
 void copy_matrix(int origin[BOARD_N_ROWS][BOARD_N_COLS], int dest[BOARD_N_ROWS][BOARD_N_COLS]);
+void print_matrix(int board[BOARD_N_ROWS][BOARD_N_COLS]);
 void print_board(int board[BOARD_N_ROWS][BOARD_N_COLS]);
 
 #endif

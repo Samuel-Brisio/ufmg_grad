@@ -1,5 +1,5 @@
-#ifndef HEADER_ATOMIC_LOCK
-#define HEADER_ATOMIC_LOCK
+#ifndef HEADER_EP1
+#define HEADER_EP1
 
 #include <pthread.h>
 #include <stdio.h>

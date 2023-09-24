@@ -7,8 +7,8 @@
 #include "common.h"
 
 // Input Variable
-char input_addr[100]; // 0 -> IPv4, 1 -> IPv6 
-int SERVER_PORT; // Porta Usada pelo Servidor
+char input_addr[100]; // server address
+char SERVER_PORT[10]; // Porta Usada pelo Servidor
 
 // Client Varibles
 int len, rtnVal;
@@ -18,6 +18,7 @@ char send_buf[80];
 char recv_buf[80];
 struct sockaddr_in6 server_addr;
 struct sockaddr_in6 client_addr;
+struct addrinfo hints, *res=NULL;
 socklen_t client_length; /* length of client structure received on accept */
 
 void arg_parsing(int argc, char *argv[]);

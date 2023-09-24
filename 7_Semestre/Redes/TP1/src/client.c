@@ -3,57 +3,90 @@
 int main(int argc, char *argv[]) {
     arg_parsing(argc, argv);
     printf("%s\n", input_addr);
-    printf("%d\n", SERVER_PORT);
+    printf("%s\n", SERVER_PORT);
 
     signal (SIGINT, interrupt_handler);
 
-    // Create a reliable, stream socket using TCP
-    /*************************************************/
-    /* Create an AF_INET6 stream socket              */
-    /*************************************************/
-    clientfd = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-    if (clientfd < 0)
-    {
-      perror("socket");
-      exit(-1);
-    }
-
-    /*************************************************/
-    /* Initialize the socket address structure       */
-    /*************************************************/
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin6_family = AF_INET6;
-    
-    // What this does?
-    // Atriubui um endereço de IP para o socket e a porta
-    rtnVal = inet_pton(AF_INET6, input_addr, &server_addr.sin6_addr);
-        /********************************************************************/
+    // Initialize the variable hints
+    memset(&hints, 0x00, sizeof(hints));
+    hints.ai_flags = AI_NUMERICSERV;
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    /********************************************************************/
     /* Check if we were provided the address of the server using        */
     /* inet_pton() to convert the text form of the address to binary    */
     /* form. If it is numeric then we want to prevent getaddrinfo()     */
     /* from doing any name resolution.                                  */
     /********************************************************************/
     rtnVal = inet_pton(AF_INET, input_addr, &server_addr);
-    // if rtnVal == 1 -> /* valid IPv4 text address? */
-    if (rtnVal != 1)  {
+    if (rtnVal == 1)    /* valid IPv4 text address? */
+    {
+        hints.ai_family = AF_INET;
+        hints.ai_flags |= AI_NUMERICHOST;
+    }
+    else
+    {
         rtnVal = inet_pton(AF_INET6, input_addr, &server_addr);
-    }  
-    if (rtnVal == 0) {
-        printf("inet_pton() failed: invalid address string\n");
-        exit(1);
-    }
-    else if (rtnVal < 0) {
-        printf("inet_pton() failed\n");
-        exit(1);
-    }
-    server_addr.sin6_port = htons(SERVER_PORT);
+        if (rtnVal == 1) /* valid IPv6 text address? */
+        {
 
-    // Establish the connection to the echo server
-    if (connect(clientfd, (struct sockaddr *) &server_addr, sizeof(struct sockaddr_in6)) < 0) {
-        printf("connect() failed\n");
+        hints.ai_family = AF_INET6;
+        hints.ai_flags |= AI_NUMERICHOST;
+        }
+    }
+    /********************************************************************/
+    /* Get the address information for the server using getaddrinfo().  */
+    /* To open a socket client-server, we need some important           */
+    /* information about the server that we want to connect to such as  */
+    /* the domain address, the address family it uses, etc.             */
+    /* Reference: https://linuxhint.com/c-getaddrinfo-function-usage/   */
+    /********************************************************************/
+    rtnVal = getaddrinfo(input_addr, SERVER_PORT, &hints, &res);
+    if (rtnVal != 0)
+    {
+        printf("Host not found --> %s\n", gai_strerror(rtnVal));
+        if (rtnVal == EAI_SYSTEM)
+            printf("getaddrinfo() failed");
+        exit(-1);
+    }
+
+    printf("Usa IPv6: %d\n", hints.ai_socktype);
+
+    // Create a reliable, stream socket using TCP
+    /*************************************************/
+    /* Create an AF_INET6 stream socket              */
+    /*************************************************/
+    clientfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (clientfd < 0)
+    {
+      perror("socket");
+      exit(-1);
+    }
+
+    /********************************************************************/
+    /* Use the connect() function to establish a connection to the      */
+    /* server.                                                          */
+    /********************************************************************/
+    rtnVal = connect(clientfd, res->ai_addr, res->ai_addrlen);
+    if (rtnVal < 0)
+    {
+        /*****************************************************************/
+        /* Note: the res is a linked list of addresses found for server. */
+        /* If the connect() fails to the first one, subsequent addresses */
+        /* (if any) in the list can be tried if required.               */
+        /*****************************************************************/
+        printf("connect() failed");
         exit(1);
     }
 
+    /*************************************************/
+    /* Initialize the socket address structure       */
+    /*************************************************/
+    
+    
+    // memset(&server_addr, 0, sizeof(server_addr));
+    // server_addr.sin6_family = AF_INET6;
+    
     // Program init
     struct action server_msg;
     server_msg.type = -1;
@@ -101,7 +134,7 @@ void arg_parsing(int argc, char *argv[]) {
     
     memset(input_addr, 0, sizeof(input_addr));
     sscanf(argv[1], "%s", input_addr);
-    sscanf(argv[2], "%d", &SERVER_PORT);
+    sscanf(argv[2], "%s", SERVER_PORT);
 }
 
 struct action process_game_action(struct action act) {

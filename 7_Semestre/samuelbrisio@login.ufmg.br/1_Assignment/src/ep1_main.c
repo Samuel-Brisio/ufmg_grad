@@ -1,6 +1,3 @@
-// Nome: Samuel Brisio de Jesus
-// Matricula: 2020085547
-
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>

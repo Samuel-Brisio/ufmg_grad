@@ -9,17 +9,20 @@ CXXFLAGS = -Wall -c -I$(INC_FOLDER)
 
 #especificar qual versão do compilador utilizar
 
-SERVER_OBJS = $(OBJ_FOLDER)/common.o $(OBJ_FOLDER)/game.o $(OBJ_FOLDER)/server.o $(OBJ_FOLDER)/client.o
+SERVER_OBJS = $(OBJ_FOLDER)/common.o $(OBJ_FOLDER)/game.o $(OBJ_FOLDER)/server.o
 CLIENT_OBJS = $(OBJ_FOLDER)/common.o $(OBJ_FOLDER)/game.o $(OBJ_FOLDER)/client.o
 HDRS = $(wildcard $(INC_FOLDER)/*.h) $(wildcard $(INC_FOLDER)/*.hpp)
 SRCS = $(wildcard $(SRC_FOLDER)/*.cpp) $(wildcard $(SRC_FOLDER)/*.c)
 
-EXE = $(BIN_FOLDER)/server
+EXE = $(BIN_FOLDER)/server $(BIN_FOLDER)/client
 
 all: $(EXE)
 
 $(BIN_FOLDER)/server: $(HDRS) $(SERVER_OBJS)
 	$(CXX) -g -o $(BIN_FOLDER)/server $(SERVER_OBJS) $(LIBS)
+
+$(BIN_FOLDER)/client: $(HDRS) $(CLIENT_OBJS)
+	$(CXX) -g -o $(BIN_FOLDER)/client $(CLIENT_OBJS) $(LIBS)
 
 $(OBJ_FOLDER)/server.o: $(HDRS) $(SRCS)
 	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/server.o $(SRC_FOLDER)/server.c

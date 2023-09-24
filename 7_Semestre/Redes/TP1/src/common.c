@@ -10,7 +10,7 @@ void copy_matrix(int origin[BOARD_N_ROWS][BOARD_N_COLS], int dest[BOARD_N_ROWS][
 
 void print_matrix(int board[BOARD_N_ROWS][BOARD_N_COLS]) {
     for (int i = 0; i < BOARD_N_ROWS; i++) {
-        for (int j = 0; j < BOARD_N_COLS; i++) {
+        for (int j = 0; j < BOARD_N_COLS; j++) {
             if (j == BOARD_N_COLS - 1) printf("%d\n", board[i][j]);
             else printf("%d\t\t", board[i][j]);
         }
@@ -41,4 +41,10 @@ void print_board(int board[BOARD_N_ROWS][BOARD_N_COLS]) {
             else printf("\t\t");
         }
     }
+}
+
+void print_action(struct action act) {
+    printf("action: %d\n", act.type);
+    printf("coord ->  x: %d, y: %d\n", act.coordinates[0], act.coordinates[1]);
+    print_matrix(act.board);
 }

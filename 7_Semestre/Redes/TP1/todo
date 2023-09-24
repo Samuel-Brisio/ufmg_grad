@@ -3,7 +3,7 @@ Imprimir a entrada -> done
 Imprimir jogo -> done
 Robusto a erros tratar caso onde o cliente passa a entrada em um formato diferente
 Se o jogo já foi iniciado recebe de novo um start do cliente
-
+Parsing de comando com somente uma palavra como start e exit
 Funções servidor
 
 Espera o cliente se comunicar

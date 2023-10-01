@@ -4,6 +4,8 @@
 #include "common.h"
 #include "game.h"
 
+int DEBUG = 0;
+
 // Input Variable
 char filename[1000];
 int IP_version; // 0 -> IPv4, 1 -> IPv6 

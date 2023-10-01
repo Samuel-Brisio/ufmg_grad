@@ -2,14 +2,12 @@
 
 int main(int argc, char *argv[]) {
     arg_parsing(argc, argv);
-    printf("%s\n", input_addr);
-    printf("%s\n", SERVER_PORT);
 
     signal (SIGINT, interrupt_handler);
 
     // Initialize the variable hints
     memset(&hints, 0x00, sizeof(hints));
-    hints.ai_flags = AI_NUMERICSERV;
+    // hints.ai_flags = AI_NUMERICSERV;
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     /********************************************************************/
@@ -22,7 +20,7 @@ int main(int argc, char *argv[]) {
     if (rtnVal == 1)    /* valid IPv4 text address? */
     {
         hints.ai_family = AF_INET;
-        hints.ai_flags |= AI_NUMERICHOST;
+        // hints.ai_flags |= AI_NUMERICHOST;
     }
     else
     {
@@ -31,7 +29,7 @@ int main(int argc, char *argv[]) {
         {
 
         hints.ai_family = AF_INET6;
-        hints.ai_flags |= AI_NUMERICHOST;
+        // hints.ai_flags |= AI_NUMERICHOST;
         }
     }
     /********************************************************************/
@@ -50,7 +48,7 @@ int main(int argc, char *argv[]) {
         exit(-1);
     }
 
-    printf("Usa IPv6: %d\n", hints.ai_socktype);
+    if (DEBUG) printf("Usa IPv6: %d\n", hints.ai_socktype);
 
     // Create a reliable, stream socket using TCP
     /*************************************************/
@@ -105,18 +103,24 @@ int main(int argc, char *argv[]) {
             close(clientfd);
             exit(-1);
         }
-        printf("%d bytes sent\n", len);
+        if(DEBUG) printf("%d bytes sent\n", len);
 
         /* Use the client socket FD to read data from the client */
         len = recv(clientfd, &server_msg, sizeof(struct action), 0);
         if (len != sizeof(struct action)){
-            printf("Error: Receive a different number os bytes\n");
-            printf("Error: Bytes receive: %d  |  Bytes expected: 76\n", len);
-            exit(-1);
+            if(DEBUG) {
+                printf("Error: Receive a different number os bytes\n");
+                printf("Error: Bytes receive: %d  |  Bytes expected: 76\n", len);
+            }
+            break;
         }
 
-        printf("Server Reply\n");
-        print_matrix(server_msg.board);
+        if (client_msg.type == 7) break;
+
+        if (DEBUG) {
+            printf("Server Reply type: %d \n", server_msg.type);
+            print_matrix(server_msg.board);
+        }
     }
 
     close(clientfd); 
@@ -139,9 +143,11 @@ void arg_parsing(int argc, char *argv[]) {
 
 struct action process_game_action(struct action act) {
     struct action client_action;
-    // printf("********************************************************\n");
-    // printf("Cliente\n");
-    // printf("Action Type: %d\n", act.type);
+    if (DEBUG) {
+        // printf("********************************************************\n");
+        // printf("Cliente\n");
+        // printf("Action Type: %d\n", act.type);
+    }
 
     // Program init
     if (act.type == -1) {
@@ -163,11 +169,13 @@ struct action process_game_action(struct action act) {
         client_action = get_client_input_and_validate(act.board);
     }
     else {
-        printf("server answer: %d", act.type);
+        if (DEBUG) {
+            printf("server answer: %d", act.type);
+        }
         client_action = get_client_input_and_validate(act.board);
     }
 
-    printf("********************************************************\n");
+    if(DEBUG) printf("********************************************************\n");
     return client_action;
 }
 

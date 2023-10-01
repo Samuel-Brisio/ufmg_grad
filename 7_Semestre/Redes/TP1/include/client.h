@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+int DEBUG = 1;
+
 // Input Variable
 char input_addr[100]; // server address
 char SERVER_PORT[10]; // Porta Usada pelo Servidor

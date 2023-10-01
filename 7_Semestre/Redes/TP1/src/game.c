@@ -80,21 +80,23 @@ int do_action(struct game_action act) {
 // Se o jogador ganhou              Win             1
 // Ainda não ganhou         Haven't won yet         0
 int check_win() {
-    int nBomb = 0;
+    int numNonBombCell = 0;
     for (int i = 0; i < BOARD_N_ROWS; i++) {
         for (int j = 0; j < BOARD_N_COLS; j++) {
-            if (board_answer.board[i][j] == -1) nBomb++; 
+            if (board_answer.board[i][j] >= 0) {
+                numNonBombCell++;
+            } 
         }
     }
 
-    int nHideCell = 0;
+    int numRevealedCell = 0;
     for (int i = 0; i < BOARD_N_ROWS; i++) {
         for (int j = 0; j < BOARD_N_COLS; j++) {
-            if (game_board.board[i][j] == -2) nHideCell++;
+            if (game_board.board[i][j] >= 0) numRevealedCell++;
         }
     }
 
-    if (nBomb == nHideCell) return 1;
+    if (numNonBombCell == numRevealedCell) return 1;
     return 0;
 }
 

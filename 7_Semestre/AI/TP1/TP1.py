@@ -30,6 +30,12 @@ def main():
         result = uniformCostSearch(EightPuzzle.getBoardCode(board), problem)
     elif algorithm == "I":
         result = IterativeDeepeningSearch(EightPuzzle.getBoardCode(board), problem)
+    elif algorithm == "A":
+        result = AStar(EightPuzzle.getBoardCode(board), problem)
+    elif algorithm == "G":
+        result = greedyBestFirstSearch(EightPuzzle.getBoardCode(board), problem)
+    
+    
     if result:
         printSolvedPuzzle(verboseOutput, result)
     else:
@@ -50,6 +56,9 @@ class treeNode:
 
     def setNextNodes(self, nextNode):
         self.nextNodes.append(nextNode)
+
+    def setCost(self, value):
+        self.cost = value
 
     def __eq__(self, other):
         return self.state == other.state
@@ -127,7 +136,39 @@ class EightPuzzle:
             newState.append(self.getBoardCode(newBoard))
 
         return newState
-    
+
+    # Count the number of pieces in the wrong place
+    def degreeOfDisorder(self, state):
+        value = 0
+        for i in range(len(state)):
+            if self.solutionState[i] != state[i]: value += 1
+        return value
+
+    def heuristicManhattanDistance(self, state):
+        value = 0
+        for i in range(len(state)):
+            value += self.manhattanDistanceForPiece(int(i) ,int(state[i]))
+        return value
+   
+    # Calculate the mangattan distance of a piece to its right place 
+    def manhattanDistanceForPiece(self, position, piece):
+        pieceNumber = int(piece)
+        # Vertical Moviment
+        vMov = 0
+        # Horizontal Moviment
+        hMov = 0
+        if int(pieceNumber) == 0:
+            return 0
+        if piece == position:
+            return 0
+        
+        # The first position in the board is 0
+        hMov = abs(position % 3  - (piece - 1) % 3) # (piece - 1) is done so the first number in each line has mod 3 equal 0 
+        newPiecePosition = (position + 1) - hMov # (position + 1) is done so the last position in each line is multiple of 3 
+        vMov = (piece - newPiecePosition) // 3 if newPiecePosition > 0 else 0    
+
+        return hMov + vMov
+
     @staticmethod 
     def printState(state):
         for i in range(rows):
@@ -150,7 +191,7 @@ class ListAndSet:
 
     def __addElementToList(self, elem):
         if self.listType == "priorityQueue":
-            self.list.put((elem.depth, elem))
+            self.list.put((elem.cost, elem))
         else:
             self.list.append(elem)
 
@@ -194,9 +235,9 @@ class ListAndSet:
         for oldElem in intersection:
             if elem == oldElem:
                 break
-        if len(intersection) > 0 and  elem.depth < oldElem.depth:
+        if len(intersection) > 0 and  elem.cost < oldElem.cost:
             self.__addElementToList(elem)
-            self.set.discard(oldElem)
+            self.set.remove(oldElem)
             self.set.add(elem)
         
 
@@ -205,6 +246,7 @@ class ListAndSet:
     
 def bfs(initial_state, problem: EightPuzzle):
     node = treeNode(initial_state, 0)  
+    node.setCost(node.depth)
 
     if problem.goalTest(node.state):
         return node.state
@@ -222,6 +264,8 @@ def bfs(initial_state, problem: EightPuzzle):
 
         for newMove in problem.possibleMoviments(node.state):
             childNode = treeNode(newMove, node.depth+1)
+            childNode.setCost(childNode.depth)
+            
             node.setNextNodes(childNode)
             childNode.setPreviusNode(node)
 
@@ -232,7 +276,9 @@ def bfs(initial_state, problem: EightPuzzle):
                 frontier.addElement(childNode)
         
 def uniformCostSearch(initial_state, problem: EightPuzzle):
-    node = treeNode(initial_state, 0)  
+    node = treeNode(initial_state, 0) 
+    node.setCost(node.depth) 
+
     
     frontier = ListAndSet("priorityQueue")
     frontier.addElement(node) 
@@ -262,6 +308,8 @@ def uniformCostSearch(initial_state, problem: EightPuzzle):
         for newMove in problem.possibleMoviments(node.state):
             #  newMove is state from node.state using a valid move
             childNode = treeNode(newMove, node.depth+1)
+            childNode.setCost(childNode.depth)
+
             node.setNextNodes(childNode)
             childNode.setPreviusNode(node)
 
@@ -272,25 +320,27 @@ def uniformCostSearch(initial_state, problem: EightPuzzle):
 
 
 def LimitedDeepeningSearch(initial_state, problem: EightPuzzle, maxDepth):
-    node = treeNode(initial_state, 0)  
+    node = treeNode(initial_state, 0) 
+    node.setCost(node.depth)
+
     frontier = ListAndSet('list')
-    explored = set()
     frontier.addElement(node)
 
     while( not frontier.isEmpty() ):
         node = frontier.removeLastElement()
-        if problem.goalTest(node.state):
-            return node
+        
+        if problem.goalTest(node.state): return node
+        if node.depth > maxDepth: continue
  
         for newMove in problem.possibleMoviments(node.state):
             childNode = treeNode(newMove, node.depth+1)
+            childNode.setCost(childNode.depth)
             childNode.setPreviusNode(node)
 
-            if (not frontier.hasElement(childNode)) and (childNode not in explored):
+            if (not frontier.hasElement(childNode)):
                 # print(explored)
                 node.setNextNodes(childNode)
-                if node.depth <= maxDepth:
-                    frontier.addElement(childNode)
+                frontier.addElement(childNode)
     
     return "Empty Frontier"
 
@@ -300,22 +350,96 @@ def IterativeDeepeningSearch(initialState, problem):
     
     while True:
         res = LimitedDeepeningSearch(initialState, problem, limit)
-        if res != "Empty Frontier":
-            return res
         limit += 1
-        print(limit)
-        if limit > 40:
-            print(limit)
-            break
+        
+        if type(res) != str: return res
+        if limit > 40: break
 
-def AStar():
-    pass
+def AStar(initialState, problem: EightPuzzle):
+    node = treeNode(initialState, 0)
+    node.setCost(node.depth + problem.degreeOfDisorder(node.state))
+    
+    frontier = ListAndSet("priorityQueue")
+    frontier.addElement(node)
+    
+    explored = set()
+
+    while( not frontier.isEmpty() ):
+        node = frontier.removeFirstElement()
+        if problem.goalTest(node.state): return node
+        
+        # Because the priority dont have a update method
+        # So childNodes that have a lower cost than a previus state
+        # In frontier, is add to the priority instead of replace old one
+        # Therefore we will have a duplicated status on frontier
+        # The status that have a lower will be process before
+        # So when a status with higher cost is process
+        # The one with the lower will be already inside the explored list
+        # Therefore we can ignore the node with the highst cost
+        if node in explored:
+            continue
+
+        explored.add(node)
+
+        for newMove in problem.possibleMoviments(node.state):
+            #  newMove is state from node.state using a valid move
+            childNode = treeNode(newMove, node.depth+1)
+            childNode.setCost(childNode.depth + problem.degreeOfDisorder(childNode.state))
+            childNode.setPreviusNode(node)
+
+            if childNode not in explored:
+                if (not frontier.hasElement(childNode)):
+                    node.setNextNodes(childNode)
+                    frontier.addElement(childNode)
+                frontier.updateIfCostLess(childNode)
+
+
+
+def greedyBestFirstSearch(initialState, problem: EightPuzzle):
+    node = treeNode(initialState, 0)
+    node.setCost(problem.heuristicManhattanDistance(node.state))
+    
+    frontier = ListAndSet("priorityQueue")
+    frontier.addElement(node)
+    
+    explored = set()
+
+    while( not frontier.isEmpty() ):
+        node = frontier.removeFirstElement()
+        if problem.goalTest(node.state): return node
+        
+        # Because the priority dont have a update method
+        # So childNodes that have a lower cost than a previus state
+        # In frontier, is add to the priority instead of replace old one
+        # Therefore we will have a duplicated status on frontier
+        # The status that have a lower will be process before
+        # So when a status with higher cost is process
+        # The one with the lower will be already inside the explored list
+        # Therefore we can ignore the node with the highst cost
+        if node in explored:
+            continue
+
+        explored.add(node)
+
+        for newMove in problem.possibleMoviments(node.state):
+            #  newMove is state from node.state using a valid move
+            childNode = treeNode(newMove, node.depth+1)
+            childNode.setCost(problem.degreeOfDisorder(childNode.state))
+            childNode.setPreviusNode(node)
+
+            if childNode not in explored:
+                if (not frontier.hasElement(childNode)):
+                    node.setNextNodes(childNode)
+                    frontier.addElement(childNode)
+                frontier.updateIfCostLess(childNode)
+
+
+
 
 def printSolvedPuzzle(verbose: bool, node: treeNode):
     print(node.depth)
     # Print the intermediate steps
     if verbose:
-        print("")
         recursiveintermediateSteps(node)
 
     
@@ -323,8 +447,8 @@ def recursiveintermediateSteps(node: treeNode):
     # if node has something
     if node:
         recursiveintermediateSteps(node.previusNode)
-        EightPuzzle.printState(node.state)
         print("")
+        EightPuzzle.printState(node.state)
 
 def writeToLog(string: str):
     with open(logfile, 'a') as file:

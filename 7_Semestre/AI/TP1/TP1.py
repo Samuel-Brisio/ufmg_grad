@@ -7,7 +7,8 @@ logfile = "log.txt"
 
 rows = 3
 cols = 3
-solution = "123456780"    
+solution = "123456780"
+MAX_ITER = 100000 # For hill climb    
 
 
 def main():
@@ -34,6 +35,8 @@ def main():
         result = AStar(EightPuzzle.getBoardCode(board), problem)
     elif algorithm == "G":
         result = greedyBestFirstSearch(EightPuzzle.getBoardCode(board), problem)
+    elif algorithm == "H":
+        result = hillClimb(EightPuzzle.getBoardCode(board), problem)
     
     
     if result:
@@ -424,7 +427,7 @@ def greedyBestFirstSearch(initialState, problem: EightPuzzle):
         for newMove in problem.possibleMoviments(node.state):
             #  newMove is state from node.state using a valid move
             childNode = treeNode(newMove, node.depth+1)
-            childNode.setCost(problem.degreeOfDisorder(childNode.state))
+            childNode.setCost(problem.heuristicManhattanDistance(childNode.state))
             childNode.setPreviusNode(node)
 
             if childNode not in explored:
@@ -433,7 +436,33 @@ def greedyBestFirstSearch(initialState, problem: EightPuzzle):
                     frontier.addElement(childNode)
                 frontier.updateIfCostLess(childNode)
 
+def hillClimb(initialState, problem: EightPuzzle):
+    node = treeNode(initialState, 0)
+    node.setCost(problem.heuristicManhattanDistance(node.state))
+    
+    explored = set()
 
+    for _ in range(MAX_ITER):
+        bestCostChildNode = treeNode('', 0)
+        bestCostChildNode.setCost(100000)
+
+        for newMove in problem.possibleMoviments(node.state):
+            #  newMove is state from node.state using a valid move
+            childNode = treeNode(newMove, node.depth+1)
+            childNode.setCost(problem.heuristicManhattanDistance(childNode.state))
+            childNode.setPreviusNode(node)
+
+            if childNode not in explored:
+                node.setNextNodes(childNode)
+
+                if childNode.cost <= bestCostChildNode.cost:
+                    bestCostChildNode = childNode
+            
+        if bestCostChildNode.cost <= node.cost:
+            node = bestCostChildNode
+        else: break
+    
+    return node
 
 
 def printSolvedPuzzle(verbose: bool, node: treeNode):

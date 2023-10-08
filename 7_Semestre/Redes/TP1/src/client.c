@@ -224,6 +224,8 @@ struct action get_client_input_and_validate(int currBoard[BOARD_N_ROWS][BOARD_N_
         client_action = parse_action(input_str);
     } while (!isActionValid(client_action, currBoard));
 
+    copy_matrix(currBoard, client_action.board);
+
     return client_action;
 }
 

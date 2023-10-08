@@ -6,7 +6,7 @@
 
 #include "common.h"
 
-int DEBUG = 1;
+int DEBUG = 0;
 
 // Input Variable
 char input_addr[100]; // server address

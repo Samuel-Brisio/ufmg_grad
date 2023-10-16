@@ -2,13 +2,17 @@ import sys
 import copy
 from queue import PriorityQueue
 
+sys.setrecursionlimit(20000)
+
 LOG = False
 logfile = "log.txt"
 
 rows = 3
 cols = 3
 solution = "123456780"
-MAX_ITER = 100000 # For hill climb    
+MAX_ITER = 10000 # For hill climb    
+
+numberExpandedNodes = 0
 
 
 def main():
@@ -45,6 +49,7 @@ def main():
         print("No solution")
 
 
+
 class treeNode:
     # nextNode = list
     # previusNode = parent (node)
@@ -67,7 +72,7 @@ class treeNode:
         return self.state == other.state
     
     def __lt__(self, other):
-        return self.state < self.state
+        return self.state < other.state
     
     def __hash__(self):
         return int(self.state)
@@ -87,26 +92,8 @@ class EightPuzzle:
                 board[i][j] = code[indx]
         return board
     
-    def __whereIsTheZero(self, state:str):
-        idx = state.index('0')
-        return (int((idx - idx % cols)/ rows), idx % cols)
-    
     def goalTest(self, state):
         return state == self.solutionState
-    
-    def __doMove(self, idxRows, idxCols, move, board):
-        if "down" == move:
-            board[idxRows][idxCols], board[idxRows+1][idxCols] = board[idxRows+1][idxCols], board[idxRows][idxCols]
-        elif "up" == move:
-            board[idxRows][idxCols], board[idxRows-1][idxCols] = board[idxRows-1][idxCols], board[idxRows][idxCols]
-        elif "right" == move:
-            board[idxRows][idxCols], board[idxRows][idxCols+1] = board[idxRows][idxCols+1], board[idxRows][idxCols]
-        elif "left" == move:
-            board[idxRows][idxCols], board[idxRows][idxCols-1] = board[idxRows][idxCols-1], board[idxRows][idxCols]
-        
-        if LOG: writeToLog(move)
-        
-        return board
     
     @staticmethod      
     def getBoardCode(board):
@@ -116,29 +103,41 @@ class EightPuzzle:
                 board_code += str(board[i][j])
         return board_code
     
+    def __getNewState__(self, state, zeroPosition, shift):
+        # Crie uma cópia do estado atual como uma lista para facilitar a modificação
+        novo_estado = list(state)
+        # Troque o espaço vazio com o número acima dele
+        novo_estado[zeroPosition], novo_estado[zeroPosition + shift] = novo_estado[zeroPosition + shift], novo_estado[zeroPosition]
+        # Converta a lista de volta para uma string
+        novo_estado = "".join(novo_estado)
+
+        return novo_estado
+    
+
     def possibleMoviments(self, state):
-        board = self.__codeToMatrix(state)
-        idxOfZero = self.__whereIsTheZero(state)
+        # Encontre a posição do espaço vazio (0) na string
+        posicao_vazio = state.index('0')
+        linha_vazio, coluna_vazio = posicao_vazio // 3, posicao_vazio % 3
+        newStates = []
 
-        newState = []
-        # Down
-        if idxOfZero[0] + 1 < rows:
-            newBoard = self.__doMove(idxOfZero[0],idxOfZero[1], "down", copy.deepcopy(board))
-            newState.append(EightPuzzle.getBoardCode(newBoard))
-        # Up
-        if idxOfZero[0] - 1 >= 0:
-            newBoard = self.__doMove(idxOfZero[0],idxOfZero[1], "up", copy.deepcopy(board))
-            newState.append(self.getBoardCode(newBoard))
-        # Right
-        if idxOfZero[1] + 1 < cols:
-            newBoard = self.__doMove(idxOfZero[0],idxOfZero[1], "right", copy.deepcopy(board))
-            newState.append(self.getBoardCode(newBoard))
-        # Left
-        if idxOfZero[1] - 1 >= 0:
-            newBoard = self.__doMove(idxOfZero[0],idxOfZero[1], "left", copy.deepcopy(board))
-            newState.append(self.getBoardCode(newBoard))
+        # movimento == "Baixo"
+        if linha_vazio < 2:
+            newStates.append(self.__getNewState__(state, posicao_vazio, +3))
 
-        return newState
+        # movimento == "Direita"
+        if coluna_vazio < 2:
+            newStates.append(self.__getNewState__(state, posicao_vazio, +1))
+        
+        # movimento == "Cima"
+        if  linha_vazio > 0:
+            newStates.append(self.__getNewState__(state, posicao_vazio, -3))
+
+        # movimento == "Esqueda"
+        if coluna_vazio > 0:
+            newStates.append(self.__getNewState__(state, posicao_vazio, -1))
+
+
+        return newStates
 
     # Count the number of pieces in the wrong place
     def degreeOfDisorder(self, state):
@@ -198,27 +197,27 @@ class ListAndSet:
         else:
             self.list.append(elem)
 
-    def __removeElementFromList(self, position):
+    def __removeElementFromList(self):
+        elem = 0
         if self.listType == "priorityQueue":
             _, elem = self.list.get()
-            return elem
+        elif self.listType == "stack":
+            elem = self.list.pop(-1)
         else:
-            return self.list.pop(position)
-
+            elem = self.list.pop(0)
+        return elem
 
     def addElement(self, elem):
         self.__addElementToList(elem)
         self.set.add(elem)
 
-    def removeFirstElement(self):
-        elem = self.__removeElementFromList(0)
+    def removeElement(self):
+        global numberExpandedNodes
+        numberExpandedNodes += 1
+
+        elem = self.__removeElementFromList()
         self.set.remove(elem)
         return elem
-    
-    def removeLastElement(self):
-        elem = self.__removeElementFromList(-1)
-        self.set.remove(elem)
-        return elem  
     
     def isEmpty(self):
         return len(self.set) == 0
@@ -242,17 +241,34 @@ class ListAndSet:
             self.__addElementToList(elem)
             self.set.remove(oldElem)
             self.set.add(elem)
-        
 
-        
-
+class depthExploredSet:
+    def __init__(self):
+        self.depthSet = [set()]
     
+    def add(self, elem, depth):
+        if len(self.depthSet) >= depth + 1:
+            self.depthSet[depth].add(elem)
+        else:
+            self.depthSet.append(set())
+            self.depthSet[depth].add(elem)
+
+    def hasElement(self, elem, depth):
+        # print(depth)
+        # print(len(self.depthSet))
+        for i in range(depth):
+            if elem in self.depthSet[i]:
+                return True 
+        return False
+
+        
+
 def bfs(initial_state, problem: EightPuzzle):
     node = treeNode(initial_state, 0)  
     node.setCost(node.depth)
 
     if problem.goalTest(node.state):
-        return node.state
+        return node
     
     frontier = ListAndSet("list")
     frontier.addElement(node) 
@@ -262,7 +278,7 @@ def bfs(initial_state, problem: EightPuzzle):
         if( frontier.isEmpty() ):
             return False
         
-        node = frontier.removeFirstElement()
+        node = frontier.removeElement()
         explored.add(node)
 
         for newMove in problem.possibleMoviments(node.state):
@@ -291,7 +307,7 @@ def uniformCostSearch(initial_state, problem: EightPuzzle):
         if( frontier.isEmpty() ):
             return False
         
-        node = frontier.removeFirstElement()
+        node = frontier.removeElement()
 
         # Because the priority dont have a update method
         # So childNodes that have a lower cost than a previus state
@@ -322,16 +338,48 @@ def uniformCostSearch(initial_state, problem: EightPuzzle):
             frontier.updateIfCostLess(childNode)
 
 
+# def LimitedDeepeningSearch(initial_state, problem: EightPuzzle, maxDepth):
+#     node = treeNode(initial_state, 0) 
+#     node.setCost(node.depth)
+
+#     frontier = ListAndSet('stack')
+#     frontier.addElement(node)
+
+#     explored = set()
+
+#     while( not frontier.isEmpty() ):
+        
+#         node = frontier.removeElement()
+#         explored.add(node)
+
+#         if problem.goalTest(node.state): return node
+#         if node.depth > maxDepth: continue
+ 
+#         for newMove in problem.possibleMoviments(node.state):
+#             childNode = treeNode(newMove, node.depth+1)
+#             childNode.setCost(childNode.depth)
+#             childNode.setPreviusNode(node)
+
+#             if (not frontier.hasElement(childNode) and (childNode not in explored)):
+#                 node.setNextNodes(childNode)
+#                 frontier.addElement(childNode)
+    
+#     return "Empty Frontier"
+
 def LimitedDeepeningSearch(initial_state, problem: EightPuzzle, maxDepth):
     node = treeNode(initial_state, 0) 
     node.setCost(node.depth)
 
-    frontier = ListAndSet('list')
+    frontier = ListAndSet('stack')
     frontier.addElement(node)
+    
+    explored = depthExploredSet()
 
-    while( not frontier.isEmpty() ):
-        node = frontier.removeLastElement()
+    while(not frontier.isEmpty() ):
         
+        node = frontier.removeElement()
+        explored.add(node, node.depth)
+
         if problem.goalTest(node.state): return node
         if node.depth > maxDepth: continue
  
@@ -341,12 +389,11 @@ def LimitedDeepeningSearch(initial_state, problem: EightPuzzle, maxDepth):
             childNode.setPreviusNode(node)
 
             if (not frontier.hasElement(childNode)):
-                # print(explored)
-                node.setNextNodes(childNode)
-                frontier.addElement(childNode)
+                if ( not explored.hasElement(childNode, childNode.depth)):
+                    node.setNextNodes(childNode)
+                    frontier.addElement(childNode)
     
     return "Empty Frontier"
-
 
 def IterativeDeepeningSearch(initialState, problem):
     limit = 0
@@ -354,9 +401,11 @@ def IterativeDeepeningSearch(initialState, problem):
     while True:
         res = LimitedDeepeningSearch(initialState, problem, limit)
         limit += 1
+        # print(limit)
         
         if type(res) != str: return res
-        if limit > 40: break
+        if limit > 100:
+            break
 
 def AStar(initialState, problem: EightPuzzle):
     node = treeNode(initialState, 0)
@@ -368,7 +417,7 @@ def AStar(initialState, problem: EightPuzzle):
     explored = set()
 
     while( not frontier.isEmpty() ):
-        node = frontier.removeFirstElement()
+        node = frontier.removeElement()
         if problem.goalTest(node.state): return node
         
         # Because the priority dont have a update method
@@ -408,7 +457,7 @@ def greedyBestFirstSearch(initialState, problem: EightPuzzle):
     explored = set()
 
     while( not frontier.isEmpty() ):
-        node = frontier.removeFirstElement()
+        node = frontier.removeElement()
         if problem.goalTest(node.state): return node
         
         # Because the priority dont have a update method
@@ -442,10 +491,13 @@ def hillClimb(initialState, problem: EightPuzzle):
     
     explored = set()
 
+    global numberExpandedNodes
+
     for _ in range(MAX_ITER):
         bestCostChildNode = treeNode('', 0)
         bestCostChildNode.setCost(100000)
 
+        numberExpandedNodes += 1
         for newMove in problem.possibleMoviments(node.state):
             #  newMove is state from node.state using a valid move
             childNode = treeNode(newMove, node.depth+1)

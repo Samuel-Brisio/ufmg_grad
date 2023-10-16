@@ -3,6 +3,7 @@
 **/*.out
 **/*.pdf
 **/*.o
+**/*.odt
 teste.cpp
 **/output/
 .vscode/
@@ -24,3 +25,4 @@ teste.cpp
 7_Semestre/Redes/TP1/todo
 7_Semestre/AI/TP1/Rapha.py
 7_Semestre/AI/TP1/Alves.py
+7_Semestre/AI/TP1/Documentation.odt

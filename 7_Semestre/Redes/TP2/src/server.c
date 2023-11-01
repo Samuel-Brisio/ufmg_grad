@@ -2,11 +2,9 @@
 
 int main(int argc, char *argv[]) {
 
-    arg_parsing(argc, argv);
-
     signal(SIGINT, interrupt_handler);
 
-    if(server_sockaddr_parse(IP_version, SERVER_PORT, &storage) == 1) {
+    if(server_sockaddr_parse(argv[1], argv[2], &storage) == 1) {
         perror("server sockaddr parse");
         exit(-1);
     }
@@ -41,60 +39,60 @@ int main(int argc, char *argv[]) {
             exit(1);
     }
 
-    /* accept is a blocking call and the call would stop further invocation of
-    code till a client connection is accepted */
-    client_length = sizeof(client_addr);
     
     for (;;) {
-        clientfd = accept(serverfd, (struct sockaddr *)&client_addr, &client_length);
+        /* accept is a blocking call and the call would stop further invocation of
+        code till a client connection is accepted */
+
+        struct sockaddr_storage cstorage;
+        struct sockaddr *caddr = (struct sockaddr *) (&cstorage);
+        client_length = sizeof(struct sockaddr_storage);
+
+        clientfd = accept(serverfd, (struct sockaddr *)&caddr, &client_length);
         printf("client connected\n");
 
         if (clientfd < 0) {
-            printf("Unable to connect to Client FD\n");
+            printf("Unable to connect to Client\n");
             exit(1);
         }
 
-        /* read and write data from/to client socket */
-        for (;;) {
+        struct client_data *cdata = malloc(sizeof(struct client_data));
+        if (!cdata) {
+            printf("malloc");
+            exit(1);
         }
-        printf("client disconnected\n");    
-        close(clientfd);
+        cdata->csock = clientfd;
+        memcpy(&(cdata->storage), &storage, sizeof(storage));
+
+        pthread_t tid;
+        pthread_create(&tid, NULL, client_thread, cdata); 
+  
+        
     }
 
     close(serverfd);
     return 0;
 }
 
-void arg_parsing(int argc, char *argv[]) {
-    int opt;
+void * client_thread(void *data) {
+    struct client_data *cdata = (struct client_data *) data;
+    struct sockaddr *cadddr = (struct sockaddr *)(&cdata->storage);
 
-    if (argc < 5) {
-        printf("Number of Arguments: %d\n", argc);       
-        exit(1);
+    // TODO APLICATION RUN HERE
+    /* read and write data from/to client socket */
+    for (;;) {
+    
     }
 
-    if (strcmp("v4", argv[1]) == 0) IP_version = 0;
-    else if (strcmp("v6", argv[1]) == 0) IP_version = 1;
-    else {
-        printf("Invalid Ip version\n");
-        exit(1);
-    }
 
-    sscanf(argv[2], "%d", &SERVER_PORT);
+    printf("client disconnected\n");    
+    close(clientfd);
 
-    while ((opt = getopt(argc, argv, "i:")) != -1) {
-        switch (opt) {
-        case 'i': 
-            // printf("%s\n", optarg);
-            strcpy(filename, optarg); 
-            break;
-        
-        default:
-            fprintf(stderr, "Usage: %s [-i] [files...]\n", argv[0]);
-            exit(EXIT_FAILURE);
-        }
-    }
+    // Tenho que dar um free na memoria
+
+    pthread_exit(EXIT_SUCCESS);
 }
+
 
 void interrupt_handler (int signum) {
     close(serverfd);

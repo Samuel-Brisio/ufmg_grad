@@ -7,9 +7,8 @@ int main(int argc, char *argv[]) {
 
     client_sockaddr_parse(server_addr, server_port, &storage);
 
-    // Create a reliable, stream socket using TCP
     /*************************************************/
-    /* Create an AF_INET6 stream socket              */
+    /* Create a stream socket                        */
     /*************************************************/
     clientfd = socket(storage.ss_family, SOCK_STREAM, IPPROTO_TCP);
     if (clientfd < 0)
@@ -50,9 +49,9 @@ void arg_parsing(int argc, char *argv[]) {
         exit(1);
     }
     
-    memset(input_addr, 0, sizeof(input_addr));
-    sscanf(argv[1], "%s", input_addr);
-    sscanf(argv[2], "%s", SERVER_PORT);
+    memset(server_addr, 0, sizeof(server_addr));
+    sscanf(argv[1], "%s", server_addr);
+    sscanf(argv[2], "%s", server_port);
 }
 
 void interrupt_handler (int signum) {

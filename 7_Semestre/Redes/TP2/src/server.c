@@ -144,7 +144,7 @@ void process_client_msg(struct BlogOperation *client_msg) {
         break;
     // Desinscrição de um tópico 6
     case 6:
-        // unsubscribe_from_topic();
+        unsubscribe_from_topic(client_msg);
         break;
     
     default:
@@ -247,6 +247,23 @@ void subscribe_to_topic(struct BlogOperation *msg) {
     }
 
     printf("client %02d subscribed to %s\n", msg->client_id, msg->topic);
+}
+
+void unsubscribe_from_topic(struct BlogOperation *msg) {
+    if(DEBUG) printf("Debug Message: Enter the function unsubscribe from topic\n");
+    
+    struct topic *ptr = find_topic(msg->topic);
+    if(ptr == NULL) logexit("Empty Point in unsubscribe funcion\n");
+
+    int client_id = msg->client_id;
+    if (ptr->subscribe[client_id - 1] == 1) {
+        ptr->subscribe[client_id - 1] = 0;
+    }
+    else {
+        if(DEBUG) printf("Debug Message: Client isn't subscribed to the topic %s\n", msg->topic);
+    }
+
+    printf("client %02d unsubscribed to %s\n", msg->client_id, msg->topic);
 }
 
 void insert_topic(char *msg) {

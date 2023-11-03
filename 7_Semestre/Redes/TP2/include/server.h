@@ -58,6 +58,7 @@ struct topic * find_topic(char *msg) ;
 void insert_topic(char *msg);
 void publish(struct BlogOperation *client_msg);
 void subscribe_to_topic(struct BlogOperation *msg);
+void unsubscribe_from_topic(struct BlogOperation *msg);
 void delete_topic();
 void print_server_status();
 

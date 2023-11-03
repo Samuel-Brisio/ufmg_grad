@@ -32,14 +32,33 @@ int main(int argc, char *argv[]) {
         printf("connect() failed");
         exit(1);
     }
-    
+
+    start_connection(clientfd);
+    struct BlogOperation server_msg;
+    receiveBlogOperation(clientfd, &server_msg);
+    my_ID = server_msg.client_id;
+
+    pthread_t tid;
+    pthread_create(&tid, NULL, recv_thread, NULL);
+
     for (;;) {
+        struct BlogOperation client_msg;
+        get_user_input(&client_msg);
+        sendBlogOperation(clientfd, &client_msg);
     }
 
     close(clientfd); 
     close(serverfd);
 
     return 0;
+}
+
+void * recv_thread(void *data) {
+    for (;;) {
+        struct BlogOperation server_msg;
+        receiveBlogOperation(clientfd, &server_msg);
+        process_server_message(&server_msg);
+    }
 }
 
 void arg_parsing(int argc, char *argv[]) {
@@ -60,3 +79,126 @@ void interrupt_handler (int signum) {
     printf("socket connection closed\n");
     exit(0);
 };
+
+void start_connection(int sockfd) {
+    struct BlogOperation client_msg;
+    client_msg.client_id = 0;
+    client_msg.operation_type = 1;
+    client_msg.server_response = 0;
+    strcpy(client_msg.topic, "");
+    strcpy(client_msg.content, "");
+    sendBlogOperation(sockfd, &client_msg);
+}
+
+void init_cliet_msg(struct BlogOperation *msg) {
+    msg->client_id = my_ID;
+    msg->operation_type = 0;
+    msg->server_response = 0;
+    strcpy(msg->topic, "");
+    strcpy(msg->content, "");
+}
+
+void get_user_input(struct BlogOperation *msg) {
+    int validInput = 0;
+
+    do
+    {
+        init_cliet_msg(msg);
+        validInput = get_operation_input(msg);
+        if (validInput == 1 && msg->operation_type == 2) {
+            validInput = get_content_input(msg);
+        }
+    } while (!validInput);  
+}
+
+int get_operation_input(struct BlogOperation *msg) {
+    char line[CONTENT_SIZE];
+    memset(line, 0, CONTENT_SIZE);
+    fgets(line, CONTENT_SIZE, stdin);
+
+    char operation[TOPIC_SIZE];
+    char secondWord[TOPIC_SIZE];
+    char thirdWord[TOPIC_SIZE];
+    int nWords = sscanf(line, "%s%s%s", operation, secondWord, thirdWord);
+
+    switch (nWords)
+    {
+    case 1:
+        if(strcmp(operation, "exit") == 0) return 1;
+
+        printf("Invalid Operation\n");
+        return 0;
+    case 2:
+        if(strcmp(operation, "list") == 0) {
+            // the string is empty
+            if (strcmp(secondWord, "topics") == 0) {
+                msg->operation_type = 3;
+                return 1;
+            }
+            printf("To list the topics use: list topics");
+            return 0;
+        }
+        else if(strcmp(operation, "subscribe") == 0) {
+            // the string is empty
+            if (strcmp(secondWord, "") == 0) {
+                printf("Empty Topic\n");
+                return 0;
+            }
+            msg->operation_type = 4;
+            strcpy(msg->topic, secondWord);
+            return 1;
+
+        }
+        else if(strcmp(operation, "unsubscribe") == 0) {
+            // the string is empty
+            if (strcmp(secondWord, "") == 0) {
+                printf("Empty Topic\n");
+                return 0;
+            }
+            msg->operation_type = 6;
+            strcpy(msg->topic, secondWord);
+            return 1;
+        }
+        else {
+            printf("Invalid Operation\n");
+            return 0;
+        }
+        break;
+    // Post a phrase
+    case 3:
+        if(strcmp(operation, "publish") != 0) return 0;
+        if(strcmp(secondWord, "in") != 0) return 0;
+        if(strcmp(thirdWord, "") == 0) return 0;
+        
+        msg->operation_type = 2;
+        strcpy(msg->topic, thirdWord);
+        return 1;
+
+    default:
+        printf("Invalid number of Words\n");
+        return 0;
+    }
+
+    return 0;
+}
+
+int get_content_input(struct BlogOperation *msg) {
+    char line[CONTENT_SIZE];
+    memset(line, 0, CONTENT_SIZE);
+    fgets(line, CONTENT_SIZE, stdin);
+    if (strcmp(line, "") == 0) return 0;
+    strcpy(msg->content, line);
+    return 1;
+}
+
+void process_server_message(struct BlogOperation *msg) {
+    switch (msg->operation_type)
+    {
+    case 2: 
+        printf("new post added in %s by %02d\n", msg->topic, msg->client_id);
+        printf("%s", msg->content);
+
+    default:
+        break;
+    }
+}

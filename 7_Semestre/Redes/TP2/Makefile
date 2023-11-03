@@ -25,7 +25,7 @@ $(BIN_FOLDER)/client: $(HDRS) $(CLIENT_OBJS)
 	$(CXX) -g -o $(BIN_FOLDER)/client $(CLIENT_OBJS) $(LIBS)
 
 $(OBJ_FOLDER)/server.o: $(HDRS) $(SRCS)
-	$(CXX) -g $(CXXFLAGS) -o $(OBJ_FOLDER)/server.o $(SRC_FOLDER)/server.c
+	$(CXX) -g $(CXXFLAGS) -lpthread -o $(OBJ_FOLDER)/server.o $(SRC_FOLDER)/server.c
 
 $(OBJ_FOLDER)/client.o: $(HDRS) $(SRCS)
 	$(CXX) -g $(CXXFLAGS) -lpthread -o $(OBJ_FOLDER)/client.o $(SRC_FOLDER)/client.c

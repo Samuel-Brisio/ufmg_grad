@@ -21,6 +21,7 @@
 
 int client_sockaddr_parse(const char *addrstr, const char *portstr, struct sockaddr_storage *storage);
 int server_sockaddr_parse(const char *IP_PROTO, const char *portstr, struct sockaddr_storage *storage);
+void logexit(const char *msg);
 
 /*************************************************/
 /* Used in the game                              */

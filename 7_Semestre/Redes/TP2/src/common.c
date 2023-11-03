@@ -61,3 +61,8 @@ int server_sockaddr_parse(const char *IP_PROTO, const char *portstr, struct sock
 
     return -1;
 }
+
+void logexit(const char *msg) {
+    perror(msg);
+    exit(EXIT_FAILURE);
+}

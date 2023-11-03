@@ -2,6 +2,8 @@
 
 int main(int argc, char *argv[]) {
 
+    init_user_ID();
+
     signal(SIGINT, interrupt_handler);
 
     if(server_sockaddr_parse(argv[1], argv[2], &storage) == 1) {
@@ -80,13 +82,31 @@ void * client_thread(void *data) {
 
     // TODO APLICATION RUN HERE
     /* read and write data from/to client socket */
-    for (;;) {
+
+    struct BlogOperation client_start_msg;
+    receiveBlogOperation(cdata->csock, &client_start_msg);
     
+    // New Connection -> Code 1
+    if (client_start_msg.operation_type == 1 && client_start_msg.client_id == 0){
+        new_connection(cdata->csock);
+    }
+    else if (client_start_msg.client_id == 0) {
+        logexit("Client ID equal 0\n");
     }
 
+    for (;;) {
+        if (DEBUG) print_server_status();
+        
+        struct BlogOperation client_msg;
+        receiveBlogOperation(cdata->csock, &client_msg);
+        
+        if(DEBUG) print_BlogOperation(&client_msg);
+        
+        process_client_msg(&client_msg);
+    }
 
     printf("client disconnected\n");    
-    close(clientfd);
+    close(cdata->csock);
 
     // Tenho que dar um free na memoria
 
@@ -99,4 +119,183 @@ void interrupt_handler (int signum) {
 
     printf("socket connection closed\n");
     exit(0);
+}
+
+void process_client_msg(struct BlogOperation *client_msg) {    
+    switch (client_msg->operation_type)
+    {
+    // Novo post em um tópico 2
+    case 2:
+        /* code */
+        publish(client_msg);
+        break;
+    // Listagem de tópicos 3
+    case 3:
+        // list_topics(server_msg);
+        break;
+    // Inscrição em um tópico 4
+    case 4:
+        subscribe_to_topic(client_msg);
+        break;
+    // Desconectar do servidor 5
+    case 5:
+        // client_disconect();
+        /* code */
+        break;
+    // Desinscrição de um tópico 6
+    case 6:
+        // unsubscribe_from_topic();
+        break;
+    
+    default:
+        // logexit("No Operation Found\n");
+    }
+}
+
+void init_user_ID() {
+    for (int i = 0; i < MAX_NUMBER_CLIENT; i++) {
+        clients[i].available = 1;
+        clients[i].sock = 0; 
+    }
+}
+
+void new_connection(int socket) {
+    int i;
+    for (i = 0; i < MAX_NUMBER_CLIENT; i++) {
+        if (clients[i].available == 1) break; 
+    }
+    clients[i].available = 0;
+    clients[i].sock = socket;
+
+    struct BlogOperation server_msg;
+    server_msg.client_id = i + 1;
+    server_msg.operation_type = 1;
+    server_msg.server_response = 1;
+    strcpy(server_msg.topic, "");
+    strcpy(server_msg.content, "");
+    
+    printf("client %02d connected\n", server_msg.client_id);
+
+    sendBlogOperation(clients[i].sock, &server_msg);
+}
+
+void publish(struct BlogOperation *client_msg) {
+    if (DEBUG) printf("Debug Message: Enter the function publish\n");
+
+    struct topic *ptr = find_topic(client_msg->topic);
+    if(ptr == NULL) logexit("Empty Point in publish funcion\n");
+
+    printf("new post added in %s by %02d\n", client_msg->topic, client_msg->client_id);
+
+    for(int i = 0; i < MAX_NUMBER_CLIENT; i++) {
+        if(ptr->subscribe[i] == 1) {
+                struct BlogOperation server_msg;
+                server_msg.client_id = client_msg->client_id;
+                server_msg.operation_type = 2;
+                server_msg.server_response = 1;
+                strcpy(server_msg.topic, client_msg->topic);
+                strcpy(server_msg.content, client_msg->content);
+
+                if (clients[i].available == 1) logexit("Error: User no long connected\n");
+                sendBlogOperation(clients[i].sock, &server_msg);
+        }
+    }
+
+}
+
+struct topic * find_topic(char *msg) {
+    if (DEBUG) printf("Debug Message: Enter the function find topic searching for %s\n", msg);
+
+    int topic_exist = 0;
+    struct topic *ptr = list_head;
+    while(ptr != NULL) {
+        if (strcmp(ptr->topic_name, msg) == 0) {
+            topic_exist = 1;
+            break;
+        }
+        ptr = ptr->next;
+    }
+
+    if(topic_exist) return ptr;
+    else {
+        insert_topic(msg); 
+        return list_tail;
+    }
+}
+
+void subscribe_to_topic(struct BlogOperation *msg) {
+    
+    if(DEBUG) printf("Debug Message: Enter the function subscribe topic\n");
+    
+    struct topic *ptr = find_topic(msg->topic);
+    if(ptr == NULL) logexit("Empty Point in subscribe funcion\n");
+    ptr->subscribe[msg->client_id-1] = 1;
+
+    printf("client %02d subscribed to %s\n", msg->client_id, msg->topic);
+}
+
+void insert_topic(char *msg) {
+    if(DEBUG) printf("Debug Message: Enter the function insert topic\n");
+
+    struct topic *new_topic = malloc(sizeof(struct topic));
+    if (new_topic == NULL) {
+        logexit("Error when allocating memory to a new topic");
+    }
+    new_topic->prev = NULL;
+    new_topic->next = NULL;
+    strcpy(new_topic->topic_name, msg);
+
+    if(DEBUG) printf("Debug Message: Initialize a new topic named %s\n", new_topic->topic_name);
+    
+    for(int i = 0; i < MAX_NUMBER_CLIENT; i++) {
+
+    }
+    
+    if (list_head == NULL) {
+        list_head = new_topic;
+        list_tail = new_topic;
+    }
+    else {
+        list_tail->next = new_topic;
+        list_tail = new_topic;
+    }
+}
+
+void print_server_status() {
+    printf("**************    Server Status   **************\n");
+    printf("Clients Connected: ");
+    for (int i = 0; i < MAX_NUMBER_CLIENT; i++) {
+        printf("%d:", i+1);
+        if (clients[i].available == 1) printf("X ");
+        else printf("O ");
+    }
+    printf("\n");
+
+    printf("Topics \n");
+    
+    if (list_head == NULL) printf("Empty Topic List\n");
+    else {
+        struct topic *ptr = list_head;
+        while(ptr != NULL) {
+            printf("topic name: %s\n", ptr->topic_name);
+            printf("subscribed client: ");
+            
+            for (int i = 0; i < MAX_NUMBER_CLIENT; i++) {
+                printf("%d:", i+1);
+                if (ptr->subscribe[i] == 1) printf("O ");
+                else printf("X ");
+            }
+
+            printf("\n");
+
+            ptr = ptr->next;
+        }
+    }
+    printf("************    END Server Status   ************\n");
+}
+
+void init_server_msg(struct BlogOperation *msg) {
+    msg->server_response = 1;
+    strcpy(msg->topic, "");
+    strcpy(msg->content, "");
 }

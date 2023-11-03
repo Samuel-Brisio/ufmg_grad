@@ -229,7 +229,22 @@ void subscribe_to_topic(struct BlogOperation *msg) {
     
     struct topic *ptr = find_topic(msg->topic);
     if(ptr == NULL) logexit("Empty Point in subscribe funcion\n");
-    ptr->subscribe[msg->client_id-1] = 1;
+    
+    int client_id = msg->client_id;
+
+    if (ptr->subscribe[client_id - 1] == 1) {
+        if(DEBUG) printf("Debug Message: Client already subscribed to a topic\n");
+        struct BlogOperation server_msg;
+        server_msg.client_id = client_id;
+        server_msg.operation_type = 4;
+        server_msg.server_response = 1;
+        strcpy(server_msg.topic, "error: already subscribed");
+        strcpy(server_msg.content, "");
+        sendBlogOperation(clients[client_id - 1].sock, &server_msg);
+    } else {
+        if(DEBUG) printf("Debug Message: Subscribing client to topic\n");
+        ptr->subscribe[client_id - 1] = 1;
+    }
 
     printf("client %02d subscribed to %s\n", msg->client_id, msg->topic);
 }

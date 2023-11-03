@@ -197,6 +197,9 @@ void process_server_message(struct BlogOperation *msg) {
     case 2: 
         printf("new post added in %s by %02d\n", msg->topic, msg->client_id);
         printf("%s", msg->content);
+        break;
+    case 4:
+        printf("%s\n", msg->topic);
 
     default:
         break;

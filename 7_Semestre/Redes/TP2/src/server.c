@@ -90,9 +90,6 @@ void * client_thread(void *data) {
     if (client_start_msg.operation_type == 1 && client_start_msg.client_id == 0){
         new_connection(cdata->csock);
     }
-    else if (client_start_msg.client_id == 0) {
-        logexit("Client ID equal 0\n");
-    }
 
     for (;;) {
         if (DEBUG) print_server_status();

@@ -59,6 +59,8 @@ void insert_topic(char *msg);
 void publish(struct BlogOperation *client_msg);
 void subscribe_to_topic(struct BlogOperation *msg);
 void unsubscribe_from_topic(struct BlogOperation *msg);
+void list_topics(int client_id);
+void client_disconnect(int client_id);
 void delete_topic();
 void print_server_status();
 

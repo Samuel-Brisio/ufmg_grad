@@ -8,7 +8,7 @@
 #define TOPIC_SIZE 50
 #define CONTENT_SIZE 2048
 #define MAX_NUMBER_CLIENT 10
-#define DEBUG 1
+#define DEBUG 0
 
 
 struct BlogOperation {

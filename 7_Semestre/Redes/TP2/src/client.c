@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
         struct BlogOperation client_msg;
         get_user_input(&client_msg);
         sendBlogOperation(clientfd, &client_msg);
+        if (client_msg.operation_type == 5) break;
     }
 
     close(clientfd); 
@@ -124,8 +125,10 @@ int get_operation_input(struct BlogOperation *msg) {
     switch (nWords)
     {
     case 1:
-        if(strcmp(operation, "exit") == 0) return 1;
-
+        if(strcmp(operation, "exit") == 0) {
+            msg->operation_type = 5;
+            return 1;
+        }
         printf("Invalid Operation\n");
         return 0;
     case 2:
@@ -135,7 +138,7 @@ int get_operation_input(struct BlogOperation *msg) {
                 msg->operation_type = 3;
                 return 1;
             }
-            printf("To list the topics use: list topics");
+            printf("To list the topics use: list topics\n");
             return 0;
         }
         else if(strcmp(operation, "subscribe") == 0) {
@@ -198,9 +201,12 @@ void process_server_message(struct BlogOperation *msg) {
         printf("new post added in %s by %02d\n", msg->topic, msg->client_id);
         printf("%s", msg->content);
         break;
+    case 3:
+        printf("%s", msg->content);
+        break;
     case 4:
-        printf("%s\n", msg->topic);
-
+        printf("%s", msg->content);
+        break;
     default:
         break;
     }

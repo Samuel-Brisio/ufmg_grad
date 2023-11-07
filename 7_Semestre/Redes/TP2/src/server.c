@@ -51,7 +51,6 @@ int main(int argc, char *argv[]) {
         client_length = sizeof(struct sockaddr_storage);
 
         clientfd = accept(serverfd, (struct sockaddr *)&caddr, &client_length);
-        printf("client connected\n");
 
         if (clientfd < 0) {
             printf("Unable to connect to Client\n");
@@ -96,13 +95,13 @@ void * client_thread(void *data) {
         
         struct BlogOperation client_msg;
         receiveBlogOperation(cdata->csock, &client_msg);
-        
+
         if(DEBUG) print_BlogOperation(&client_msg);
         
         process_client_msg(&client_msg);
+        if (client_msg.operation_type == 5) break;
     }
 
-    printf("client disconnected\n");    
     close(cdata->csock);
 
     // Tenho que dar um free na memoria
@@ -128,7 +127,7 @@ void process_client_msg(struct BlogOperation *client_msg) {
         break;
     // Listagem de tópicos 3
     case 3:
-        // list_topics(server_msg);
+        list_topics(client_msg->client_id);
         break;
     // Inscrição em um tópico 4
     case 4:
@@ -136,7 +135,7 @@ void process_client_msg(struct BlogOperation *client_msg) {
         break;
     // Desconectar do servidor 5
     case 5:
-        // client_disconect();
+        client_disconnect(client_msg->client_id);
         /* code */
         break;
     // Desinscrição de um tópico 6
@@ -231,12 +230,14 @@ void subscribe_to_topic(struct BlogOperation *msg) {
 
     if (ptr->subscribe[client_id - 1] == 1) {
         if(DEBUG) printf("Debug Message: Client already subscribed to a topic\n");
+        
         struct BlogOperation server_msg;
         server_msg.client_id = client_id;
         server_msg.operation_type = 4;
         server_msg.server_response = 1;
-        strcpy(server_msg.topic, "error: already subscribed");
-        strcpy(server_msg.content, "");
+        strcpy(server_msg.topic, "");
+        strcpy(server_msg.content, "error: already subscribed");
+
         sendBlogOperation(clients[client_id - 1].sock, &server_msg);
     } else {
         if(DEBUG) printf("Debug Message: Subscribing client to topic\n");
@@ -261,6 +262,39 @@ void unsubscribe_from_topic(struct BlogOperation *msg) {
     }
 
     printf("client %02d unsubscribed to %s\n", msg->client_id, msg->topic);
+}
+
+void list_topics(int client_id) {
+    if(DEBUG) printf("Debug Message: Enter the function list topic\n");
+
+    struct BlogOperation server_msg;
+    server_msg.client_id = client_id;
+    server_msg.operation_type = 3;
+    server_msg.server_response = 1;
+    strcpy(server_msg.topic, "");
+    strcpy(server_msg.content, "");
+
+    int length = 0;
+    if (list_head != NULL) {
+        struct topic *ptr = list_head;
+        while(ptr != NULL) {
+            // concatenates str1 and str2
+            // the resultant string is stored in str1.
+            if (length == 0) length += sprintf(server_msg.content + length, "%s", ptr->topic_name);
+            else length += sprintf(server_msg.content + length, ";%s", ptr->topic_name);
+            ptr = ptr->next;
+        }
+        strcat(server_msg.content, "\n");
+    }
+    else {
+        sprintf(server_msg.content, "no topics available\n");
+    }
+
+    sendBlogOperation(clients[client_id - 1].sock, &server_msg);
+}   
+
+void client_disconnect(int client_id) {
+    printf("client %02d disconnected\n", client_id);
 }
 
 void insert_topic(char *msg) {

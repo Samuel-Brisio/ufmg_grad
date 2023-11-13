@@ -26,6 +26,8 @@ struct client_data
     struct sockaddr_storage storage;
 };
 
+pthread_mutex_t mutex;
+
 // Medium Variables
 
 struct client_info {

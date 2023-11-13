@@ -5,6 +5,7 @@ int main(int argc, char *argv[]) {
     init_user_ID();
 
     signal(SIGINT, interrupt_handler);
+    pthread_mutex_init(&mutex, NULL);
 
     if(server_sockaddr_parse(argv[1], argv[2], &storage) == 1) {
         perror("server sockaddr parse");
@@ -148,6 +149,7 @@ void process_client_msg(struct BlogOperation *client_msg) {
     }
 }
 
+// Inicia com valores padrão o vetor de clientes
 void init_user_ID() {
     for (int i = 0; i < MAX_NUMBER_CLIENT; i++) {
         clients[i].available = 1;
@@ -155,13 +157,17 @@ void init_user_ID() {
     }
 }
 
+// Conecta um novo cliente
 void new_connection(int socket) {
+    pthread_mutex_lock(&mutex);
     int i;
     for (i = 0; i < MAX_NUMBER_CLIENT; i++) {
         if (clients[i].available == 1) break; 
     }
+
     clients[i].available = 0;
     clients[i].sock = socket;
+    pthread_mutex_unlock(&mutex);
 
     struct BlogOperation server_msg;
     server_msg.client_id = i + 1;
@@ -183,6 +189,7 @@ void publish(struct BlogOperation *client_msg) {
 
     printf("new post added in %s by %02d\n", client_msg->topic, client_msg->client_id);
 
+    pthread_mutex_lock(&mutex);
     for(int i = 0; i < MAX_NUMBER_CLIENT; i++) {
         if(ptr->subscribe[i] == 1) {
                 struct BlogOperation server_msg;
@@ -196,6 +203,7 @@ void publish(struct BlogOperation *client_msg) {
                 sendBlogOperation(clients[i].sock, &server_msg);
         }
     }
+    pthread_mutex_unlock(&mutex);
 
 }
 
@@ -248,6 +256,7 @@ void subscribe_to_topic(struct BlogOperation *msg) {
 }
 
 void unsubscribe_from_topic(struct BlogOperation *msg) {
+    pthread_mutex_lock(&mutex);
     if(DEBUG) printf("Debug Message: Enter the function unsubscribe from topic\n");
     
     struct topic *ptr = find_topic(msg->topic);
@@ -262,6 +271,7 @@ void unsubscribe_from_topic(struct BlogOperation *msg) {
     }
 
     printf("client %02d unsubscribed to %s\n", msg->client_id, msg->topic);
+    pthread_mutex_unlock(&mutex);
 }
 
 void list_topics(int client_id) {
@@ -298,6 +308,7 @@ void client_disconnect(int client_id) {
 }
 
 void insert_topic(char *msg) {
+    pthread_mutex_lock(&mutex);
     if(DEBUG) printf("Debug Message: Enter the function insert topic\n");
 
     struct topic *new_topic = malloc(sizeof(struct topic));
@@ -322,6 +333,7 @@ void insert_topic(char *msg) {
         list_tail->next = new_topic;
         list_tail = new_topic;
     }
+    pthread_mutex_unlock(&mutex);
 }
 
 void print_server_status() {

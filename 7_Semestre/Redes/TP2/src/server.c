@@ -244,15 +244,15 @@ void subscribe_to_topic(struct BlogOperation *msg) {
         server_msg.operation_type = 4;
         server_msg.server_response = 1;
         strcpy(server_msg.topic, "");
-        strcpy(server_msg.content, "error: already subscribed");
+        strcpy(server_msg.content, "error: already subscribed\n");
 
         sendBlogOperation(clients[client_id - 1].sock, &server_msg);
     } else {
         if(DEBUG) printf("Debug Message: Subscribing client to topic\n");
+        printf("client %02d subscribed to %s\n", msg->client_id, msg->topic);
         ptr->subscribe[client_id - 1] = 1;
     }
 
-    printf("client %02d subscribed to %s\n", msg->client_id, msg->topic);
 }
 
 void unsubscribe_from_topic(struct BlogOperation *msg) {
@@ -304,7 +304,21 @@ void list_topics(int client_id) {
 }   
 
 void client_disconnect(int client_id) {
+    pthread_mutex_lock(&mutex);
+    int index = client_id - 1;
+    clients[index].available = 1;
+    clients[index].sock = 0;
+
+
+    struct topic *ptr = list_head;
+    while(ptr != NULL) {
+        ptr->subscribe[index] = 0;
+        ptr = ptr->next;
+    }
+    
+
     printf("client %02d disconnected\n", client_id);
+    pthread_mutex_unlock(&mutex);
 }
 
 void insert_topic(char *msg) {

@@ -51,6 +51,7 @@ int server_sockaddr_parse(const char *IP_PROTO, const char *portstr, struct sock
         return 0;
     }
 
+
     if(0 == strcmp(IP_PROTO, "v6")){
         struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) storage;
         addr6->sin6_family = AF_INET6;

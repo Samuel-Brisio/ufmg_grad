@@ -35,8 +35,10 @@ int main(int argc, char *argv[]) {
 
     start_connection(clientfd);
     struct BlogOperation server_msg;
+    if(DEBUG) printf("Waiting for ID\n");
     receiveBlogOperation(clientfd, &server_msg);
     my_ID = server_msg.client_id;
+    if(DEBUG) printf("My ID: %d\n", my_ID);
 
     pthread_t tid;
     pthread_create(&tid, NULL, recv_thread, NULL);

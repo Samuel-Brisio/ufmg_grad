@@ -131,7 +131,7 @@ int get_operation_input(struct BlogOperation *msg) {
             msg->operation_type = 5;
             return 1;
         }
-        printf("Invalid Operation\n");
+        if (DEBUG) printf("Invalid Operation\n");
         return 0;
     case 2:
         if(strcmp(operation, "list") == 0) {
@@ -140,13 +140,13 @@ int get_operation_input(struct BlogOperation *msg) {
                 msg->operation_type = 3;
                 return 1;
             }
-            printf("To list the topics use: list topics\n");
+            if (DEBUG) printf("To list the topics use: list topics\n");
             return 0;
         }
         else if(strcmp(operation, "subscribe") == 0) {
             // the string is empty
             if (strcmp(secondWord, "") == 0) {
-                printf("Empty Topic\n");
+                if (DEBUG) printf("Empty Topic\n");
                 return 0;
             }
             msg->operation_type = 4;
@@ -157,7 +157,7 @@ int get_operation_input(struct BlogOperation *msg) {
         else if(strcmp(operation, "unsubscribe") == 0) {
             // the string is empty
             if (strcmp(secondWord, "") == 0) {
-                printf("Empty Topic\n");
+                if (DEBUG) printf("Empty Topic\n");
                 return 0;
             }
             msg->operation_type = 6;
@@ -165,7 +165,7 @@ int get_operation_input(struct BlogOperation *msg) {
             return 1;
         }
         else {
-            printf("Invalid Operation\n");
+            if (DEBUG) printf("Invalid Operation\n");
             return 0;
         }
         break;
@@ -180,7 +180,7 @@ int get_operation_input(struct BlogOperation *msg) {
         return 1;
 
     default:
-        printf("Invalid number of Words\n");
+        if (DEBUG) ("Invalid number of Words\n");
         return 0;
     }
 

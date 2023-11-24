@@ -1,0 +1,72 @@
+syntax = "proto3";
+
+package server;
+
+// The server functions definition.
+service Procedures {
+    rpc insert (insertInput) returns (insertOutput) {}
+	rpc search (searchInput) returns (searchOutput) {}
+	rpc activation (activationInput) returns (activationOutput) {}
+	rpc termination (terminationInput) returns (terminationOutput) {}
+}
+
+// The request message containing the user's name.
+message insertInput {
+    int32 key = 1;
+	string description = 2;
+}
+
+// The response message containing the greetings
+message insertOutput {
+    int32 retval = 1;
+}
+
+message searchInput {
+    int32 key = 1;
+}
+
+message searchOutput {
+    string retval = 1;
+}
+
+message activationInput {
+    string id = 1;
+}
+
+message activationOutput {
+    int32 retval = 1;
+}
+
+message terminationInput {}
+
+message terminationOutput {
+    int32 retval = 1;
+}
+
+
+
+
+// Second Part 02
+
+service centralServer {
+    rpc register (registerInput) returns (registerOutput) {}
+    rpc mapping (mappingInput) returns (mappingOutput) {}
+    rpc termination (terminationInput) returns (terminationOutput) {}
+}
+
+message registerInput {
+    string id = 1;
+    repeated int32 values = 2;
+}
+
+message registerOutput {
+    int32 retval = 1;
+}
+
+message mappingInput {
+    int32 key = 1;
+}
+
+message mappingOutput {
+    string retval = 1;
+}
